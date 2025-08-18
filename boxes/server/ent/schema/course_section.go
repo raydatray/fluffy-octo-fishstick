@@ -22,8 +22,12 @@ func (CourseSection) Edges() []ent.Edge {
 			Ref("sections").
 			Unique().
 			Required(),
-		edge.From("teacher", User.Type).Ref("teaching_sections").
-			Unique().
+		edge.From("professors", User.Type).
+			Ref("teaching_sections").
 			Required(),
+		edge.From("teaching_assistants", User.Type).
+			Ref("assisting_sections"),
+		edge.From("students", User.Type).
+			Ref("enrolled_sections"),
 	}
 }
