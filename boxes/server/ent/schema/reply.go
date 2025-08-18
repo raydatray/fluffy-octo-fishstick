@@ -1,18 +1,30 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
 
-// Reply holds the schema definition for the Reply entity.
 type Reply struct {
 	ent.Schema
 }
 
-// Fields of the Reply.
 func (Reply) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.Text("content").NotEmpty(),
+	}
 }
 
-// Edges of the Reply.
 func (Reply) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("author", User.Type).
+			Ref("replies").
+			Unique().
+			Required(),
+		edge.From("post", Post.Type).
+			Ref("replies").
+			Unique().
+			Required(),
+	}
 }
