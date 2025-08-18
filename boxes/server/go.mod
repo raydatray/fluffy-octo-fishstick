@@ -2,7 +2,10 @@ module github.com/raydatray/fluffy-octo-fishstick/boxes/server
 
 go 1.24.6
 
-require entgo.io/ent v0.14.5
+require (
+	entgo.io/ent v0.14.5
+	github.com/mattn/go-sqlite3 v1.14.32
+)
 
 require (
 	ariga.io/atlas v0.32.1-0.20250325101103-175b25e1c1b9 // indirect
