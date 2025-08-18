@@ -16,6 +16,9 @@ func (DiscussionBoard) Fields() []ent.Field {
 func (DiscussionBoard) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("posts", Post.Type),
-		edge.From("course", Course.Type).Ref("board").Unique().Required(),
+		edge.From("course", Course.Type).
+			Ref("discussion_board").
+			Unique().
+			Required(),
 	}
 }
