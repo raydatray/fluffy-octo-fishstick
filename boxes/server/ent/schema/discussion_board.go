@@ -1,18 +1,21 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+)
 
-// DiscussionBoard holds the schema definition for the DiscussionBoard entity.
 type DiscussionBoard struct {
 	ent.Schema
 }
 
-// Fields of the DiscussionBoard.
 func (DiscussionBoard) Fields() []ent.Field {
 	return nil
 }
 
-// Edges of the DiscussionBoard.
 func (DiscussionBoard) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("posts", Post.Type),
+		edge.From("course", Course.Type).Ref("board").Unique().Required(),
+	}
 }
