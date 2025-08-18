@@ -1,18 +1,29 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+)
 
-// CourseSection holds the schema definition for the CourseSection entity.
 type CourseSection struct {
 	ent.Schema
 }
 
-// Fields of the CourseSection.
 func (CourseSection) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.Int("number"),
+	}
 }
 
-// Edges of the CourseSection.
 func (CourseSection) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("course", Course.Type).
+			Ref("sections").
+			Unique().
+			Required(),
+		edge.From("teacher", User.Type).Ref("teaching_sections").
+			Unique().
+			Required(),
+	}
 }
