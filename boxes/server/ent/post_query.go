@@ -22,14 +22,17 @@ import (
 // PostQuery is the builder for querying Post entities.
 type PostQuery struct {
 	config
-	ctx         *QueryContext
-	order       []post.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Post
-	withAuthor  *UserQuery
-	withBoard   *DiscussionBoardQuery
-	withReplies *ReplyQuery
-	withFKs     bool
+	ctx              *QueryContext
+	order            []post.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Post
+	withAuthor       *UserQuery
+	withBoard        *DiscussionBoardQuery
+	withReplies      *ReplyQuery
+	withFKs          bool
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*Post) error
+	withNamedReplies map[string]*ReplyQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -466,6 +469,9 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -491,6 +497,18 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 		if err := _q.loadReplies(ctx, query, nodes,
 			func(n *Post) { n.Edges.Replies = []*Reply{} },
 			func(n *Post, e *Reply) { n.Edges.Replies = append(n.Edges.Replies, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedReplies {
+		if err := _q.loadReplies(ctx, query, nodes,
+			func(n *Post) { n.appendNamedReplies(name) },
+			func(n *Post, e *Reply) { n.appendNamedReplies(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -595,6 +613,9 @@ func (_q *PostQuery) loadReplies(ctx context.Context, query *ReplyQuery, nodes [
 
 func (_q *PostQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -672,6 +693,20 @@ func (_q *PostQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedReplies tells the query-builder to eager-load the nodes that are connected to the "replies"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *PostQuery) WithNamedReplies(name string, opts ...func(*ReplyQuery)) *PostQuery {
+	query := (&ReplyClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedReplies == nil {
+		_q.withNamedReplies = make(map[string]*ReplyQuery)
+	}
+	_q.withNamedReplies[name] = query
+	return _q
 }
 
 // PostGroupBy is the group-by builder for Post entities.

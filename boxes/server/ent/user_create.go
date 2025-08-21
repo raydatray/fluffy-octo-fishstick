@@ -22,6 +22,32 @@ type UserCreate struct {
 	hooks    []Hook
 }
 
+// SetFirstName sets the "first_name" field.
+func (_c *UserCreate) SetFirstName(v string) *UserCreate {
+	_c.mutation.SetFirstName(v)
+	return _c
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (_c *UserCreate) SetMiddleName(v string) *UserCreate {
+	_c.mutation.SetMiddleName(v)
+	return _c
+}
+
+// SetNillableMiddleName sets the "middle_name" field if the given value is not nil.
+func (_c *UserCreate) SetNillableMiddleName(v *string) *UserCreate {
+	if v != nil {
+		_c.SetMiddleName(*v)
+	}
+	return _c
+}
+
+// SetLastName sets the "last_name" field.
+func (_c *UserCreate) SetLastName(v string) *UserCreate {
+	_c.mutation.SetLastName(v)
+	return _c
+}
+
 // SetEmail sets the "email" field.
 func (_c *UserCreate) SetEmail(v string) *UserCreate {
 	_c.mutation.SetEmail(v)
@@ -93,19 +119,34 @@ func (_c *UserCreate) AddTeachingSections(v ...*CourseSection) *UserCreate {
 	return _c.AddTeachingSectionIDs(ids...)
 }
 
-// AddAssistingSectionIDs adds the "assisting_sections" edge to the CourseSection entity by IDs.
-func (_c *UserCreate) AddAssistingSectionIDs(ids ...int) *UserCreate {
-	_c.mutation.AddAssistingSectionIDs(ids...)
+// AddTeachingAssistantSectionIDs adds the "teaching_assistant_sections" edge to the CourseSection entity by IDs.
+func (_c *UserCreate) AddTeachingAssistantSectionIDs(ids ...int) *UserCreate {
+	_c.mutation.AddTeachingAssistantSectionIDs(ids...)
 	return _c
 }
 
-// AddAssistingSections adds the "assisting_sections" edges to the CourseSection entity.
-func (_c *UserCreate) AddAssistingSections(v ...*CourseSection) *UserCreate {
+// AddTeachingAssistantSections adds the "teaching_assistant_sections" edges to the CourseSection entity.
+func (_c *UserCreate) AddTeachingAssistantSections(v ...*CourseSection) *UserCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddAssistingSectionIDs(ids...)
+	return _c.AddTeachingAssistantSectionIDs(ids...)
+}
+
+// AddCourseAssistantSectionIDs adds the "course_assistant_sections" edge to the CourseSection entity by IDs.
+func (_c *UserCreate) AddCourseAssistantSectionIDs(ids ...int) *UserCreate {
+	_c.mutation.AddCourseAssistantSectionIDs(ids...)
+	return _c
+}
+
+// AddCourseAssistantSections adds the "course_assistant_sections" edges to the CourseSection entity.
+func (_c *UserCreate) AddCourseAssistantSections(v ...*CourseSection) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCourseAssistantSectionIDs(ids...)
 }
 
 // AddEnrolledSectionIDs adds the "enrolled_sections" edge to the CourseSection entity by IDs.
@@ -166,6 +207,22 @@ func (_c *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserCreate) check() error {
+	if _, ok := _c.mutation.FirstName(); !ok {
+		return &ValidationError{Name: "first_name", err: errors.New(`ent: missing required field "User.first_name"`)}
+	}
+	if v, ok := _c.mutation.FirstName(); ok {
+		if err := user.FirstNameValidator(v); err != nil {
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.LastName(); !ok {
+		return &ValidationError{Name: "last_name", err: errors.New(`ent: missing required field "User.last_name"`)}
+	}
+	if v, ok := _c.mutation.LastName(); ok {
+		if err := user.LastNameValidator(v); err != nil {
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
@@ -206,6 +263,18 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node = &User{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.FirstName(); ok {
+		_spec.SetField(user.FieldFirstName, field.TypeString, value)
+		_node.FirstName = value
+	}
+	if value, ok := _c.mutation.MiddleName(); ok {
+		_spec.SetField(user.FieldMiddleName, field.TypeString, value)
+		_node.MiddleName = value
+	}
+	if value, ok := _c.mutation.LastName(); ok {
+		_spec.SetField(user.FieldLastName, field.TypeString, value)
+		_node.LastName = value
+	}
 	if value, ok := _c.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
@@ -266,12 +335,28 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.AssistingSectionsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.TeachingAssistantSectionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CourseAssistantSectionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),

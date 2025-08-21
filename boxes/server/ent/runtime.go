@@ -3,15 +3,23 @@
 package ent
 
 import (
+	"github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/discussionboard"
 	"github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/post"
 	"github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/reply"
 	"github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/schema"
+	"github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	discussionboardFields := schema.DiscussionBoard{}.Fields()
+	_ = discussionboardFields
+	// discussionboardDescName is the schema descriptor for name field.
+	discussionboardDescName := discussionboardFields[0].Descriptor()
+	// discussionboard.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	discussionboard.NameValidator = discussionboardDescName.Validators[0].(func(string) error)
 	postFields := schema.Post{}.Fields()
 	_ = postFields
 	// postDescTitle is the schema descriptor for title field.
@@ -30,4 +38,12 @@ func init() {
 	reply.ContentValidator = replyDescContent.Validators[0].(func(string) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
+	// userDescFirstName is the schema descriptor for first_name field.
+	userDescFirstName := userFields[0].Descriptor()
+	// user.FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
+	user.FirstNameValidator = userDescFirstName.Validators[0].(func(string) error)
+	// userDescLastName is the schema descriptor for last_name field.
+	userDescLastName := userFields[2].Descriptor()
+	// user.LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
+	user.LastNameValidator = userDescLastName.Validators[0].(func(string) error)
 }

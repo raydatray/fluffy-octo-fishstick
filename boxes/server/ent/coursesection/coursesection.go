@@ -20,6 +20,8 @@ const (
 	EdgeProfessors = "professors"
 	// EdgeTeachingAssistants holds the string denoting the teaching_assistants edge name in mutations.
 	EdgeTeachingAssistants = "teaching_assistants"
+	// EdgeCourseAssistants holds the string denoting the course_assistants edge name in mutations.
+	EdgeCourseAssistants = "course_assistants"
 	// EdgeStudents holds the string denoting the students edge name in mutations.
 	EdgeStudents = "students"
 	// Table holds the table name of the coursesection in the database.
@@ -37,10 +39,15 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	ProfessorsInverseTable = "users"
 	// TeachingAssistantsTable is the table that holds the teaching_assistants relation/edge. The primary key declared below.
-	TeachingAssistantsTable = "user_assisting_sections"
+	TeachingAssistantsTable = "user_teaching_assistant_sections"
 	// TeachingAssistantsInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	TeachingAssistantsInverseTable = "users"
+	// CourseAssistantsTable is the table that holds the course_assistants relation/edge. The primary key declared below.
+	CourseAssistantsTable = "user_course_assistant_sections"
+	// CourseAssistantsInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CourseAssistantsInverseTable = "users"
 	// StudentsTable is the table that holds the students relation/edge. The primary key declared below.
 	StudentsTable = "user_enrolled_sections"
 	// StudentsInverseTable is the table name for the User entity.
@@ -67,6 +74,9 @@ var (
 	// TeachingAssistantsPrimaryKey and TeachingAssistantsColumn2 are the table columns denoting the
 	// primary key for the teaching_assistants relation (M2M).
 	TeachingAssistantsPrimaryKey = []string{"user_id", "course_section_id"}
+	// CourseAssistantsPrimaryKey and CourseAssistantsColumn2 are the table columns denoting the
+	// primary key for the course_assistants relation (M2M).
+	CourseAssistantsPrimaryKey = []string{"user_id", "course_section_id"}
 	// StudentsPrimaryKey and StudentsColumn2 are the table columns denoting the
 	// primary key for the students relation (M2M).
 	StudentsPrimaryKey = []string{"user_id", "course_section_id"}
@@ -135,6 +145,20 @@ func ByTeachingAssistants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
+// ByCourseAssistantsCount orders the results by course_assistants count.
+func ByCourseAssistantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCourseAssistantsStep(), opts...)
+	}
+}
+
+// ByCourseAssistants orders the results by course_assistants terms.
+func ByCourseAssistants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCourseAssistantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByStudentsCount orders the results by students count.
 func ByStudentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -167,6 +191,13 @@ func newTeachingAssistantsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TeachingAssistantsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, TeachingAssistantsTable, TeachingAssistantsPrimaryKey...),
+	)
+}
+func newCourseAssistantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CourseAssistantsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, CourseAssistantsTable, CourseAssistantsPrimaryKey...),
 	)
 }
 func newStudentsStep() *sqlgraph.Step {

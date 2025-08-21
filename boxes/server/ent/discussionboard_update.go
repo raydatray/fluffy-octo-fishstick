@@ -29,6 +29,20 @@ func (_u *DiscussionBoardUpdate) Where(ps ...predicate.DiscussionBoard) *Discuss
 	return _u
 }
 
+// SetName sets the "name" field.
+func (_u *DiscussionBoardUpdate) SetName(v string) *DiscussionBoardUpdate {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *DiscussionBoardUpdate) SetNillableName(v *string) *DiscussionBoardUpdate {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_u *DiscussionBoardUpdate) AddPostIDs(ids ...int) *DiscussionBoardUpdate {
 	_u.mutation.AddPostIDs(ids...)
@@ -116,6 +130,11 @@ func (_u *DiscussionBoardUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *DiscussionBoardUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := discussionboard.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "DiscussionBoard.name": %w`, err)}
+		}
+	}
 	if _u.mutation.CourseCleared() && len(_u.mutation.CourseIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DiscussionBoard.course"`)
 	}
@@ -133,6 +152,9 @@ func (_u *DiscussionBoardUpdate) sqlSave(ctx context.Context) (_node int, err er
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(discussionboard.FieldName, field.TypeString, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -226,6 +248,20 @@ type DiscussionBoardUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *DiscussionBoardMutation
+}
+
+// SetName sets the "name" field.
+func (_u *DiscussionBoardUpdateOne) SetName(v string) *DiscussionBoardUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *DiscussionBoardUpdateOne) SetNillableName(v *string) *DiscussionBoardUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
+	}
+	return _u
 }
 
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
@@ -328,6 +364,11 @@ func (_u *DiscussionBoardUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *DiscussionBoardUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
+		if err := discussionboard.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "DiscussionBoard.name": %w`, err)}
+		}
+	}
 	if _u.mutation.CourseCleared() && len(_u.mutation.CourseIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DiscussionBoard.course"`)
 	}
@@ -362,6 +403,9 @@ func (_u *DiscussionBoardUpdateOne) sqlSave(ctx context.Context) (_node *Discuss
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(discussionboard.FieldName, field.TypeString, value)
 	}
 	if _u.mutation.PostsCleared() {
 		edge := &sqlgraph.EdgeSpec{

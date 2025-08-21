@@ -27,6 +27,9 @@ type CourseQuery struct {
 	predicates          []predicate.Course
 	withDiscussionBoard *DiscussionBoardQuery
 	withSections        *CourseSectionQuery
+	modifiers           []func(*sql.Selector)
+	loadTotal           []func(context.Context, []*Course) error
+	withNamedSections   map[string]*CourseSectionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -421,6 +424,9 @@ func (_q *CourseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cours
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -440,6 +446,18 @@ func (_q *CourseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cours
 		if err := _q.loadSections(ctx, query, nodes,
 			func(n *Course) { n.Edges.Sections = []*CourseSection{} },
 			func(n *Course, e *CourseSection) { n.Edges.Sections = append(n.Edges.Sections, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedSections {
+		if err := _q.loadSections(ctx, query, nodes,
+			func(n *Course) { n.appendNamedSections(name) },
+			func(n *Course, e *CourseSection) { n.appendNamedSections(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -508,6 +526,9 @@ func (_q *CourseQuery) loadSections(ctx context.Context, query *CourseSectionQue
 
 func (_q *CourseQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -585,6 +606,20 @@ func (_q *CourseQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedSections tells the query-builder to eager-load the nodes that are connected to the "sections"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseQuery) WithNamedSections(name string, opts ...func(*CourseSectionQuery)) *CourseQuery {
+	query := (&CourseSectionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedSections == nil {
+		_q.withNamedSections = make(map[string]*CourseSectionQuery)
+	}
+	_q.withNamedSections[name] = query
+	return _q
 }
 
 // CourseGroupBy is the group-by builder for Course entities.
