@@ -41,6 +41,10 @@ type PostEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
+	// totalCount holds the count of the edges above.
+	totalCount [3]map[string]int
+
+	namedReplies map[string][]*Reply
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -192,6 +196,30 @@ func (_m *Post) String() string {
 	builder.WriteString(_m.Content)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedReplies returns the Replies named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Post) NamedReplies(name string) ([]*Reply, error) {
+	if _m.Edges.namedReplies == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedReplies[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Post) appendNamedReplies(name string, edges ...*Reply) {
+	if _m.Edges.namedReplies == nil {
+		_m.Edges.namedReplies = make(map[string][]*Reply)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedReplies[name] = []*Reply{}
+	} else {
+		_m.Edges.namedReplies[name] = append(_m.Edges.namedReplies[name], edges...)
+	}
 }
 
 // Posts is a parsable slice of Post.

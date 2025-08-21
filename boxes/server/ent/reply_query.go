@@ -27,6 +27,8 @@ type ReplyQuery struct {
 	withAuthor *UserQuery
 	withPost   *PostQuery
 	withFKs    bool
+	modifiers  []func(*sql.Selector)
+	loadTotal  []func(context.Context, []*Reply) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -428,6 +430,9 @@ func (_q *ReplyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Reply,
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -446,6 +451,11 @@ func (_q *ReplyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Reply,
 	if query := _q.withPost; query != nil {
 		if err := _q.loadPost(ctx, query, nodes, nil,
 			func(n *Reply, e *Post) { n.Edges.Post = e }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -519,6 +529,9 @@ func (_q *ReplyQuery) loadPost(ctx context.Context, query *PostQuery, nodes []*R
 
 func (_q *ReplyQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique

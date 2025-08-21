@@ -30,6 +30,54 @@ func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return _u
 }
 
+// SetFirstName sets the "first_name" field.
+func (_u *UserUpdate) SetFirstName(v string) *UserUpdate {
+	_u.mutation.SetFirstName(v)
+	return _u
+}
+
+// SetNillableFirstName sets the "first_name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableFirstName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetFirstName(*v)
+	}
+	return _u
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (_u *UserUpdate) SetMiddleName(v string) *UserUpdate {
+	_u.mutation.SetMiddleName(v)
+	return _u
+}
+
+// SetNillableMiddleName sets the "middle_name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableMiddleName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetMiddleName(*v)
+	}
+	return _u
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (_u *UserUpdate) ClearMiddleName() *UserUpdate {
+	_u.mutation.ClearMiddleName()
+	return _u
+}
+
+// SetLastName sets the "last_name" field.
+func (_u *UserUpdate) SetLastName(v string) *UserUpdate {
+	_u.mutation.SetLastName(v)
+	return _u
+}
+
+// SetNillableLastName sets the "last_name" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLastName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetLastName(*v)
+	}
+	return _u
+}
+
 // SetEmail sets the "email" field.
 func (_u *UserUpdate) SetEmail(v string) *UserUpdate {
 	_u.mutation.SetEmail(v)
@@ -117,19 +165,34 @@ func (_u *UserUpdate) AddTeachingSections(v ...*CourseSection) *UserUpdate {
 	return _u.AddTeachingSectionIDs(ids...)
 }
 
-// AddAssistingSectionIDs adds the "assisting_sections" edge to the CourseSection entity by IDs.
-func (_u *UserUpdate) AddAssistingSectionIDs(ids ...int) *UserUpdate {
-	_u.mutation.AddAssistingSectionIDs(ids...)
+// AddTeachingAssistantSectionIDs adds the "teaching_assistant_sections" edge to the CourseSection entity by IDs.
+func (_u *UserUpdate) AddTeachingAssistantSectionIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddTeachingAssistantSectionIDs(ids...)
 	return _u
 }
 
-// AddAssistingSections adds the "assisting_sections" edges to the CourseSection entity.
-func (_u *UserUpdate) AddAssistingSections(v ...*CourseSection) *UserUpdate {
+// AddTeachingAssistantSections adds the "teaching_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdate) AddTeachingAssistantSections(v ...*CourseSection) *UserUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAssistingSectionIDs(ids...)
+	return _u.AddTeachingAssistantSectionIDs(ids...)
+}
+
+// AddCourseAssistantSectionIDs adds the "course_assistant_sections" edge to the CourseSection entity by IDs.
+func (_u *UserUpdate) AddCourseAssistantSectionIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddCourseAssistantSectionIDs(ids...)
+	return _u
+}
+
+// AddCourseAssistantSections adds the "course_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdate) AddCourseAssistantSections(v ...*CourseSection) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCourseAssistantSectionIDs(ids...)
 }
 
 // AddEnrolledSectionIDs adds the "enrolled_sections" edge to the CourseSection entity by IDs.
@@ -215,25 +278,46 @@ func (_u *UserUpdate) RemoveTeachingSections(v ...*CourseSection) *UserUpdate {
 	return _u.RemoveTeachingSectionIDs(ids...)
 }
 
-// ClearAssistingSections clears all "assisting_sections" edges to the CourseSection entity.
-func (_u *UserUpdate) ClearAssistingSections() *UserUpdate {
-	_u.mutation.ClearAssistingSections()
+// ClearTeachingAssistantSections clears all "teaching_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdate) ClearTeachingAssistantSections() *UserUpdate {
+	_u.mutation.ClearTeachingAssistantSections()
 	return _u
 }
 
-// RemoveAssistingSectionIDs removes the "assisting_sections" edge to CourseSection entities by IDs.
-func (_u *UserUpdate) RemoveAssistingSectionIDs(ids ...int) *UserUpdate {
-	_u.mutation.RemoveAssistingSectionIDs(ids...)
+// RemoveTeachingAssistantSectionIDs removes the "teaching_assistant_sections" edge to CourseSection entities by IDs.
+func (_u *UserUpdate) RemoveTeachingAssistantSectionIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveTeachingAssistantSectionIDs(ids...)
 	return _u
 }
 
-// RemoveAssistingSections removes "assisting_sections" edges to CourseSection entities.
-func (_u *UserUpdate) RemoveAssistingSections(v ...*CourseSection) *UserUpdate {
+// RemoveTeachingAssistantSections removes "teaching_assistant_sections" edges to CourseSection entities.
+func (_u *UserUpdate) RemoveTeachingAssistantSections(v ...*CourseSection) *UserUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAssistingSectionIDs(ids...)
+	return _u.RemoveTeachingAssistantSectionIDs(ids...)
+}
+
+// ClearCourseAssistantSections clears all "course_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdate) ClearCourseAssistantSections() *UserUpdate {
+	_u.mutation.ClearCourseAssistantSections()
+	return _u
+}
+
+// RemoveCourseAssistantSectionIDs removes the "course_assistant_sections" edge to CourseSection entities by IDs.
+func (_u *UserUpdate) RemoveCourseAssistantSectionIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveCourseAssistantSectionIDs(ids...)
+	return _u
+}
+
+// RemoveCourseAssistantSections removes "course_assistant_sections" edges to CourseSection entities.
+func (_u *UserUpdate) RemoveCourseAssistantSections(v ...*CourseSection) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCourseAssistantSectionIDs(ids...)
 }
 
 // ClearEnrolledSections clears all "enrolled_sections" edges to the CourseSection entity.
@@ -286,6 +370,16 @@ func (_u *UserUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdate) check() error {
+	if v, ok := _u.mutation.FirstName(); ok {
+		if err := user.FirstNameValidator(v); err != nil {
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LastName(); ok {
+		if err := user.LastNameValidator(v); err != nil {
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
@@ -305,6 +399,18 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.FirstName(); ok {
+		_spec.SetField(user.FieldFirstName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MiddleName(); ok {
+		_spec.SetField(user.FieldMiddleName, field.TypeString, value)
+	}
+	if _u.mutation.MiddleNameCleared() {
+		_spec.ClearField(user.FieldMiddleName, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastName(); ok {
+		_spec.SetField(user.FieldLastName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
@@ -450,12 +556,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.AssistingSectionsCleared() {
+	if _u.mutation.TeachingAssistantSectionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
@@ -463,12 +569,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedAssistingSectionsIDs(); len(nodes) > 0 && !_u.mutation.AssistingSectionsCleared() {
+	if nodes := _u.mutation.RemovedTeachingAssistantSectionsIDs(); len(nodes) > 0 && !_u.mutation.TeachingAssistantSectionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
@@ -479,12 +585,57 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.AssistingSectionsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.TeachingAssistantSectionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CourseAssistantSectionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCourseAssistantSectionsIDs(); len(nodes) > 0 && !_u.mutation.CourseAssistantSectionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CourseAssistantSectionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
@@ -558,6 +709,54 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetFirstName sets the "first_name" field.
+func (_u *UserUpdateOne) SetFirstName(v string) *UserUpdateOne {
+	_u.mutation.SetFirstName(v)
+	return _u
+}
+
+// SetNillableFirstName sets the "first_name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableFirstName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetFirstName(*v)
+	}
+	return _u
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (_u *UserUpdateOne) SetMiddleName(v string) *UserUpdateOne {
+	_u.mutation.SetMiddleName(v)
+	return _u
+}
+
+// SetNillableMiddleName sets the "middle_name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableMiddleName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetMiddleName(*v)
+	}
+	return _u
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (_u *UserUpdateOne) ClearMiddleName() *UserUpdateOne {
+	_u.mutation.ClearMiddleName()
+	return _u
+}
+
+// SetLastName sets the "last_name" field.
+func (_u *UserUpdateOne) SetLastName(v string) *UserUpdateOne {
+	_u.mutation.SetLastName(v)
+	return _u
+}
+
+// SetNillableLastName sets the "last_name" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLastName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetLastName(*v)
+	}
+	return _u
 }
 
 // SetEmail sets the "email" field.
@@ -647,19 +846,34 @@ func (_u *UserUpdateOne) AddTeachingSections(v ...*CourseSection) *UserUpdateOne
 	return _u.AddTeachingSectionIDs(ids...)
 }
 
-// AddAssistingSectionIDs adds the "assisting_sections" edge to the CourseSection entity by IDs.
-func (_u *UserUpdateOne) AddAssistingSectionIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.AddAssistingSectionIDs(ids...)
+// AddTeachingAssistantSectionIDs adds the "teaching_assistant_sections" edge to the CourseSection entity by IDs.
+func (_u *UserUpdateOne) AddTeachingAssistantSectionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddTeachingAssistantSectionIDs(ids...)
 	return _u
 }
 
-// AddAssistingSections adds the "assisting_sections" edges to the CourseSection entity.
-func (_u *UserUpdateOne) AddAssistingSections(v ...*CourseSection) *UserUpdateOne {
+// AddTeachingAssistantSections adds the "teaching_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdateOne) AddTeachingAssistantSections(v ...*CourseSection) *UserUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAssistingSectionIDs(ids...)
+	return _u.AddTeachingAssistantSectionIDs(ids...)
+}
+
+// AddCourseAssistantSectionIDs adds the "course_assistant_sections" edge to the CourseSection entity by IDs.
+func (_u *UserUpdateOne) AddCourseAssistantSectionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddCourseAssistantSectionIDs(ids...)
+	return _u
+}
+
+// AddCourseAssistantSections adds the "course_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdateOne) AddCourseAssistantSections(v ...*CourseSection) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCourseAssistantSectionIDs(ids...)
 }
 
 // AddEnrolledSectionIDs adds the "enrolled_sections" edge to the CourseSection entity by IDs.
@@ -745,25 +959,46 @@ func (_u *UserUpdateOne) RemoveTeachingSections(v ...*CourseSection) *UserUpdate
 	return _u.RemoveTeachingSectionIDs(ids...)
 }
 
-// ClearAssistingSections clears all "assisting_sections" edges to the CourseSection entity.
-func (_u *UserUpdateOne) ClearAssistingSections() *UserUpdateOne {
-	_u.mutation.ClearAssistingSections()
+// ClearTeachingAssistantSections clears all "teaching_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdateOne) ClearTeachingAssistantSections() *UserUpdateOne {
+	_u.mutation.ClearTeachingAssistantSections()
 	return _u
 }
 
-// RemoveAssistingSectionIDs removes the "assisting_sections" edge to CourseSection entities by IDs.
-func (_u *UserUpdateOne) RemoveAssistingSectionIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.RemoveAssistingSectionIDs(ids...)
+// RemoveTeachingAssistantSectionIDs removes the "teaching_assistant_sections" edge to CourseSection entities by IDs.
+func (_u *UserUpdateOne) RemoveTeachingAssistantSectionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveTeachingAssistantSectionIDs(ids...)
 	return _u
 }
 
-// RemoveAssistingSections removes "assisting_sections" edges to CourseSection entities.
-func (_u *UserUpdateOne) RemoveAssistingSections(v ...*CourseSection) *UserUpdateOne {
+// RemoveTeachingAssistantSections removes "teaching_assistant_sections" edges to CourseSection entities.
+func (_u *UserUpdateOne) RemoveTeachingAssistantSections(v ...*CourseSection) *UserUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAssistingSectionIDs(ids...)
+	return _u.RemoveTeachingAssistantSectionIDs(ids...)
+}
+
+// ClearCourseAssistantSections clears all "course_assistant_sections" edges to the CourseSection entity.
+func (_u *UserUpdateOne) ClearCourseAssistantSections() *UserUpdateOne {
+	_u.mutation.ClearCourseAssistantSections()
+	return _u
+}
+
+// RemoveCourseAssistantSectionIDs removes the "course_assistant_sections" edge to CourseSection entities by IDs.
+func (_u *UserUpdateOne) RemoveCourseAssistantSectionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveCourseAssistantSectionIDs(ids...)
+	return _u
+}
+
+// RemoveCourseAssistantSections removes "course_assistant_sections" edges to CourseSection entities.
+func (_u *UserUpdateOne) RemoveCourseAssistantSections(v ...*CourseSection) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCourseAssistantSectionIDs(ids...)
 }
 
 // ClearEnrolledSections clears all "enrolled_sections" edges to the CourseSection entity.
@@ -829,6 +1064,16 @@ func (_u *UserUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserUpdateOne) check() error {
+	if v, ok := _u.mutation.FirstName(); ok {
+		if err := user.FirstNameValidator(v); err != nil {
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LastName(); ok {
+		if err := user.LastNameValidator(v); err != nil {
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
@@ -865,6 +1110,18 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.FirstName(); ok {
+		_spec.SetField(user.FieldFirstName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MiddleName(); ok {
+		_spec.SetField(user.FieldMiddleName, field.TypeString, value)
+	}
+	if _u.mutation.MiddleNameCleared() {
+		_spec.ClearField(user.FieldMiddleName, field.TypeString)
+	}
+	if value, ok := _u.mutation.LastName(); ok {
+		_spec.SetField(user.FieldLastName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
@@ -1010,12 +1267,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.AssistingSectionsCleared() {
+	if _u.mutation.TeachingAssistantSectionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
@@ -1023,12 +1280,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedAssistingSectionsIDs(); len(nodes) > 0 && !_u.mutation.AssistingSectionsCleared() {
+	if nodes := _u.mutation.RemovedTeachingAssistantSectionsIDs(); len(nodes) > 0 && !_u.mutation.TeachingAssistantSectionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
@@ -1039,12 +1296,57 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.AssistingSectionsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.TeachingAssistantSectionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.AssistingSectionsTable,
-			Columns: user.AssistingSectionsPrimaryKey,
+			Table:   user.TeachingAssistantSectionsTable,
+			Columns: user.TeachingAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CourseAssistantSectionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCourseAssistantSectionsIDs(); len(nodes) > 0 && !_u.mutation.CourseAssistantSectionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CourseAssistantSectionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.CourseAssistantSectionsTable,
+			Columns: user.CourseAssistantSectionsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(coursesection.FieldID, field.TypeInt),

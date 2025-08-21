@@ -14,9 +14,11 @@ import (
 
 // DiscussionBoard is the model entity for the DiscussionBoard schema.
 type DiscussionBoard struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DiscussionBoardQuery when eager-loading is set.
 	Edges                   DiscussionBoardEdges `json:"edges"`
@@ -33,6 +35,10 @@ type DiscussionBoardEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedPosts map[string][]*Post
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -62,6 +68,8 @@ func (*DiscussionBoard) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case discussionboard.FieldID:
 			values[i] = new(sql.NullInt64)
+		case discussionboard.FieldName:
+			values[i] = new(sql.NullString)
 		case discussionboard.ForeignKeys[0]: // course_discussion_board
 			values[i] = new(sql.NullInt64)
 		default:
@@ -85,6 +93,12 @@ func (_m *DiscussionBoard) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case discussionboard.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				_m.Name = value.String
+			}
 		case discussionboard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field course_discussion_board", value)
@@ -137,9 +151,35 @@ func (_m *DiscussionBoard) Unwrap() *DiscussionBoard {
 func (_m *DiscussionBoard) String() string {
 	var builder strings.Builder
 	builder.WriteString("DiscussionBoard(")
-	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedPosts returns the Posts named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *DiscussionBoard) NamedPosts(name string) ([]*Post, error) {
+	if _m.Edges.namedPosts == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedPosts[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *DiscussionBoard) appendNamedPosts(name string, edges ...*Post) {
+	if _m.Edges.namedPosts == nil {
+		_m.Edges.namedPosts = make(map[string][]*Post)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedPosts[name] = []*Post{}
+	} else {
+		_m.Edges.namedPosts[name] = append(_m.Edges.namedPosts[name], edges...)
+	}
 }
 
 // DiscussionBoards is a parsable slice of DiscussionBoard.

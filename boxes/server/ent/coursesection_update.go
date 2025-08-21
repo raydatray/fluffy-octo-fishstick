@@ -91,6 +91,21 @@ func (_u *CourseSectionUpdate) AddTeachingAssistants(v ...*User) *CourseSectionU
 	return _u.AddTeachingAssistantIDs(ids...)
 }
 
+// AddCourseAssistantIDs adds the "course_assistants" edge to the User entity by IDs.
+func (_u *CourseSectionUpdate) AddCourseAssistantIDs(ids ...int) *CourseSectionUpdate {
+	_u.mutation.AddCourseAssistantIDs(ids...)
+	return _u
+}
+
+// AddCourseAssistants adds the "course_assistants" edges to the User entity.
+func (_u *CourseSectionUpdate) AddCourseAssistants(v ...*User) *CourseSectionUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCourseAssistantIDs(ids...)
+}
+
 // AddStudentIDs adds the "students" edge to the User entity by IDs.
 func (_u *CourseSectionUpdate) AddStudentIDs(ids ...int) *CourseSectionUpdate {
 	_u.mutation.AddStudentIDs(ids...)
@@ -157,6 +172,27 @@ func (_u *CourseSectionUpdate) RemoveTeachingAssistants(v ...*User) *CourseSecti
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTeachingAssistantIDs(ids...)
+}
+
+// ClearCourseAssistants clears all "course_assistants" edges to the User entity.
+func (_u *CourseSectionUpdate) ClearCourseAssistants() *CourseSectionUpdate {
+	_u.mutation.ClearCourseAssistants()
+	return _u
+}
+
+// RemoveCourseAssistantIDs removes the "course_assistants" edge to User entities by IDs.
+func (_u *CourseSectionUpdate) RemoveCourseAssistantIDs(ids ...int) *CourseSectionUpdate {
+	_u.mutation.RemoveCourseAssistantIDs(ids...)
+	return _u
+}
+
+// RemoveCourseAssistants removes "course_assistants" edges to User entities.
+func (_u *CourseSectionUpdate) RemoveCourseAssistants(v ...*User) *CourseSectionUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCourseAssistantIDs(ids...)
 }
 
 // ClearStudents clears all "students" edges to the User entity.
@@ -352,6 +388,51 @@ func (_u *CourseSectionUpdate) sqlSave(ctx context.Context) (_node int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.CourseAssistantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCourseAssistantsIDs(); len(nodes) > 0 && !_u.mutation.CourseAssistantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CourseAssistantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.StudentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
@@ -479,6 +560,21 @@ func (_u *CourseSectionUpdateOne) AddTeachingAssistants(v ...*User) *CourseSecti
 	return _u.AddTeachingAssistantIDs(ids...)
 }
 
+// AddCourseAssistantIDs adds the "course_assistants" edge to the User entity by IDs.
+func (_u *CourseSectionUpdateOne) AddCourseAssistantIDs(ids ...int) *CourseSectionUpdateOne {
+	_u.mutation.AddCourseAssistantIDs(ids...)
+	return _u
+}
+
+// AddCourseAssistants adds the "course_assistants" edges to the User entity.
+func (_u *CourseSectionUpdateOne) AddCourseAssistants(v ...*User) *CourseSectionUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCourseAssistantIDs(ids...)
+}
+
 // AddStudentIDs adds the "students" edge to the User entity by IDs.
 func (_u *CourseSectionUpdateOne) AddStudentIDs(ids ...int) *CourseSectionUpdateOne {
 	_u.mutation.AddStudentIDs(ids...)
@@ -545,6 +641,27 @@ func (_u *CourseSectionUpdateOne) RemoveTeachingAssistants(v ...*User) *CourseSe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTeachingAssistantIDs(ids...)
+}
+
+// ClearCourseAssistants clears all "course_assistants" edges to the User entity.
+func (_u *CourseSectionUpdateOne) ClearCourseAssistants() *CourseSectionUpdateOne {
+	_u.mutation.ClearCourseAssistants()
+	return _u
+}
+
+// RemoveCourseAssistantIDs removes the "course_assistants" edge to User entities by IDs.
+func (_u *CourseSectionUpdateOne) RemoveCourseAssistantIDs(ids ...int) *CourseSectionUpdateOne {
+	_u.mutation.RemoveCourseAssistantIDs(ids...)
+	return _u
+}
+
+// RemoveCourseAssistants removes "course_assistants" edges to User entities.
+func (_u *CourseSectionUpdateOne) RemoveCourseAssistants(v ...*User) *CourseSectionUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCourseAssistantIDs(ids...)
 }
 
 // ClearStudents clears all "students" edges to the User entity.
@@ -760,6 +877,51 @@ func (_u *CourseSectionUpdateOne) sqlSave(ctx context.Context) (_node *CourseSec
 			Inverse: true,
 			Table:   coursesection.TeachingAssistantsTable,
 			Columns: coursesection.TeachingAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CourseAssistantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCourseAssistantsIDs(); len(nodes) > 0 && !_u.mutation.CourseAssistantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CourseAssistantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),

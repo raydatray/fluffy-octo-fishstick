@@ -167,6 +167,29 @@ func HasTeachingAssistantsWith(preds ...predicate.User) predicate.CourseSection 
 	})
 }
 
+// HasCourseAssistants applies the HasEdge predicate on the "course_assistants" edge.
+func HasCourseAssistants() predicate.CourseSection {
+	return predicate.CourseSection(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, CourseAssistantsTable, CourseAssistantsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCourseAssistantsWith applies the HasEdge predicate on the "course_assistants" edge with a given conditions (other predicates).
+func HasCourseAssistantsWith(preds ...predicate.User) predicate.CourseSection {
+	return predicate.CourseSection(func(s *sql.Selector) {
+		step := newCourseAssistantsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasStudents applies the HasEdge predicate on the "students" edge.
 func HasStudents() predicate.CourseSection {
 	return predicate.CourseSection(func(s *sql.Selector) {

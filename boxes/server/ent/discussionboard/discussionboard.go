@@ -12,6 +12,8 @@ const (
 	Label = "discussion_board"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// EdgePosts holds the string denoting the posts edge name in mutations.
 	EdgePosts = "posts"
 	// EdgeCourse holds the string denoting the course edge name in mutations.
@@ -37,6 +39,7 @@ const (
 // Columns holds all SQL columns for discussionboard fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "discussion_boards"
@@ -60,12 +63,22 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+)
+
 // OrderOption defines the ordering options for the DiscussionBoard queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByPostsCount orders the results by posts count.
