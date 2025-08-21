@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -31,5 +33,12 @@ func (User) Edges() []ent.Edge {
 		edge.To("teaching_assistant_sections", CourseSection.Type),
 		edge.To("course_assistant_sections", CourseSection.Type),
 		edge.To("enrolled_sections", CourseSection.Type),
+	}
+}
+
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }
