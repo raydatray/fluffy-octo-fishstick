@@ -4,6 +4,8 @@ package user
 
 import (
 	"fmt"
+	"io"
+	"strconv"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -14,6 +16,12 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldFirstName holds the string denoting the first_name field in the database.
+	FieldFirstName = "first_name"
+	// FieldMiddleName holds the string denoting the middle_name field in the database.
+	FieldMiddleName = "middle_name"
+	// FieldLastName holds the string denoting the last_name field in the database.
+	FieldLastName = "last_name"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 	// FieldPassword holds the string denoting the password field in the database.
@@ -26,8 +34,10 @@ const (
 	EdgeReplies = "replies"
 	// EdgeTeachingSections holds the string denoting the teaching_sections edge name in mutations.
 	EdgeTeachingSections = "teaching_sections"
-	// EdgeAssistingSections holds the string denoting the assisting_sections edge name in mutations.
-	EdgeAssistingSections = "assisting_sections"
+	// EdgeTeachingAssistantSections holds the string denoting the teaching_assistant_sections edge name in mutations.
+	EdgeTeachingAssistantSections = "teaching_assistant_sections"
+	// EdgeCourseAssistantSections holds the string denoting the course_assistant_sections edge name in mutations.
+	EdgeCourseAssistantSections = "course_assistant_sections"
 	// EdgeEnrolledSections holds the string denoting the enrolled_sections edge name in mutations.
 	EdgeEnrolledSections = "enrolled_sections"
 	// Table holds the table name of the user in the database.
@@ -51,11 +61,16 @@ const (
 	// TeachingSectionsInverseTable is the table name for the CourseSection entity.
 	// It exists in this package in order to avoid circular dependency with the "coursesection" package.
 	TeachingSectionsInverseTable = "course_sections"
-	// AssistingSectionsTable is the table that holds the assisting_sections relation/edge. The primary key declared below.
-	AssistingSectionsTable = "user_assisting_sections"
-	// AssistingSectionsInverseTable is the table name for the CourseSection entity.
+	// TeachingAssistantSectionsTable is the table that holds the teaching_assistant_sections relation/edge. The primary key declared below.
+	TeachingAssistantSectionsTable = "user_teaching_assistant_sections"
+	// TeachingAssistantSectionsInverseTable is the table name for the CourseSection entity.
 	// It exists in this package in order to avoid circular dependency with the "coursesection" package.
-	AssistingSectionsInverseTable = "course_sections"
+	TeachingAssistantSectionsInverseTable = "course_sections"
+	// CourseAssistantSectionsTable is the table that holds the course_assistant_sections relation/edge. The primary key declared below.
+	CourseAssistantSectionsTable = "user_course_assistant_sections"
+	// CourseAssistantSectionsInverseTable is the table name for the CourseSection entity.
+	// It exists in this package in order to avoid circular dependency with the "coursesection" package.
+	CourseAssistantSectionsInverseTable = "course_sections"
 	// EnrolledSectionsTable is the table that holds the enrolled_sections relation/edge. The primary key declared below.
 	EnrolledSectionsTable = "user_enrolled_sections"
 	// EnrolledSectionsInverseTable is the table name for the CourseSection entity.
@@ -66,6 +81,9 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldFirstName,
+	FieldMiddleName,
+	FieldLastName,
 	FieldEmail,
 	FieldPassword,
 	FieldRole,
@@ -75,9 +93,12 @@ var (
 	// TeachingSectionsPrimaryKey and TeachingSectionsColumn2 are the table columns denoting the
 	// primary key for the teaching_sections relation (M2M).
 	TeachingSectionsPrimaryKey = []string{"user_id", "course_section_id"}
-	// AssistingSectionsPrimaryKey and AssistingSectionsColumn2 are the table columns denoting the
-	// primary key for the assisting_sections relation (M2M).
-	AssistingSectionsPrimaryKey = []string{"user_id", "course_section_id"}
+	// TeachingAssistantSectionsPrimaryKey and TeachingAssistantSectionsColumn2 are the table columns denoting the
+	// primary key for the teaching_assistant_sections relation (M2M).
+	TeachingAssistantSectionsPrimaryKey = []string{"user_id", "course_section_id"}
+	// CourseAssistantSectionsPrimaryKey and CourseAssistantSectionsColumn2 are the table columns denoting the
+	// primary key for the course_assistant_sections relation (M2M).
+	CourseAssistantSectionsPrimaryKey = []string{"user_id", "course_section_id"}
 	// EnrolledSectionsPrimaryKey and EnrolledSectionsColumn2 are the table columns denoting the
 	// primary key for the enrolled_sections relation (M2M).
 	EnrolledSectionsPrimaryKey = []string{"user_id", "course_section_id"}
@@ -93,6 +114,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
+	FirstNameValidator func(string) error
+	// LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
+	LastNameValidator func(string) error
+)
+
 // Role defines the type for the "role" enum field.
 type Role string
 
@@ -103,6 +131,7 @@ const DefaultRole = RoleSTUDENT
 const (
 	RolePROFESSOR Role = "PROFESSOR"
 	RoleTA        Role = "TA"
+	RoleCA        Role = "CA"
 	RoleSTUDENT   Role = "STUDENT"
 )
 
@@ -113,7 +142,7 @@ func (r Role) String() string {
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RolePROFESSOR, RoleTA, RoleSTUDENT:
+	case RolePROFESSOR, RoleTA, RoleCA, RoleSTUDENT:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)
@@ -126,6 +155,21 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByFirstName orders the results by the first_name field.
+func ByFirstName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstName, opts...).ToFunc()
+}
+
+// ByMiddleName orders the results by the middle_name field.
+func ByMiddleName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMiddleName, opts...).ToFunc()
+}
+
+// ByLastName orders the results by the last_name field.
+func ByLastName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastName, opts...).ToFunc()
 }
 
 // ByEmail orders the results by the email field.
@@ -185,17 +229,31 @@ func ByTeachingSections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 	}
 }
 
-// ByAssistingSectionsCount orders the results by assisting_sections count.
-func ByAssistingSectionsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTeachingAssistantSectionsCount orders the results by teaching_assistant_sections count.
+func ByTeachingAssistantSectionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAssistingSectionsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newTeachingAssistantSectionsStep(), opts...)
 	}
 }
 
-// ByAssistingSections orders the results by assisting_sections terms.
-func ByAssistingSections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByTeachingAssistantSections orders the results by teaching_assistant_sections terms.
+func ByTeachingAssistantSections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAssistingSectionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTeachingAssistantSectionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCourseAssistantSectionsCount orders the results by course_assistant_sections count.
+func ByCourseAssistantSectionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCourseAssistantSectionsStep(), opts...)
+	}
+}
+
+// ByCourseAssistantSections orders the results by course_assistant_sections terms.
+func ByCourseAssistantSections(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCourseAssistantSectionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -233,11 +291,18 @@ func newTeachingSectionsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, TeachingSectionsTable, TeachingSectionsPrimaryKey...),
 	)
 }
-func newAssistingSectionsStep() *sqlgraph.Step {
+func newTeachingAssistantSectionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AssistingSectionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, AssistingSectionsTable, AssistingSectionsPrimaryKey...),
+		sqlgraph.To(TeachingAssistantSectionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, TeachingAssistantSectionsTable, TeachingAssistantSectionsPrimaryKey...),
+	)
+}
+func newCourseAssistantSectionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CourseAssistantSectionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, CourseAssistantSectionsTable, CourseAssistantSectionsPrimaryKey...),
 	)
 }
 func newEnrolledSectionsStep() *sqlgraph.Step {
@@ -246,4 +311,22 @@ func newEnrolledSectionsStep() *sqlgraph.Step {
 		sqlgraph.To(EnrolledSectionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, EnrolledSectionsTable, EnrolledSectionsPrimaryKey...),
 	)
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Role) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Role) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Role(str)
+	if err := RoleValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
 }

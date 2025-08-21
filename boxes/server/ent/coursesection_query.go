@@ -21,15 +21,22 @@ import (
 // CourseSectionQuery is the builder for querying CourseSection entities.
 type CourseSectionQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []coursesection.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.CourseSection
-	withCourse             *CourseQuery
-	withProfessors         *UserQuery
-	withTeachingAssistants *UserQuery
-	withStudents           *UserQuery
-	withFKs                bool
+	ctx                         *QueryContext
+	order                       []coursesection.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.CourseSection
+	withCourse                  *CourseQuery
+	withProfessors              *UserQuery
+	withTeachingAssistants      *UserQuery
+	withCourseAssistants        *UserQuery
+	withStudents                *UserQuery
+	withFKs                     bool
+	modifiers                   []func(*sql.Selector)
+	loadTotal                   []func(context.Context, []*CourseSection) error
+	withNamedProfessors         map[string]*UserQuery
+	withNamedTeachingAssistants map[string]*UserQuery
+	withNamedCourseAssistants   map[string]*UserQuery
+	withNamedStudents           map[string]*UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +132,28 @@ func (_q *CourseSectionQuery) QueryTeachingAssistants() *UserQuery {
 			sqlgraph.From(coursesection.Table, coursesection.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, coursesection.TeachingAssistantsTable, coursesection.TeachingAssistantsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCourseAssistants chains the current query on the "course_assistants" edge.
+func (_q *CourseSectionQuery) QueryCourseAssistants() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursesection.Table, coursesection.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, coursesection.CourseAssistantsTable, coursesection.CourseAssistantsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -349,6 +378,7 @@ func (_q *CourseSectionQuery) Clone() *CourseSectionQuery {
 		withCourse:             _q.withCourse.Clone(),
 		withProfessors:         _q.withProfessors.Clone(),
 		withTeachingAssistants: _q.withTeachingAssistants.Clone(),
+		withCourseAssistants:   _q.withCourseAssistants.Clone(),
 		withStudents:           _q.withStudents.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
@@ -386,6 +416,17 @@ func (_q *CourseSectionQuery) WithTeachingAssistants(opts ...func(*UserQuery)) *
 		opt(query)
 	}
 	_q.withTeachingAssistants = query
+	return _q
+}
+
+// WithCourseAssistants tells the query-builder to eager-load the nodes that are connected to
+// the "course_assistants" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseSectionQuery) WithCourseAssistants(opts ...func(*UserQuery)) *CourseSectionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCourseAssistants = query
 	return _q
 }
 
@@ -479,10 +520,11 @@ func (_q *CourseSectionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		nodes       = []*CourseSection{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withCourse != nil,
 			_q.withProfessors != nil,
 			_q.withTeachingAssistants != nil,
+			_q.withCourseAssistants != nil,
 			_q.withStudents != nil,
 		}
 	)
@@ -500,6 +542,9 @@ func (_q *CourseSectionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
+	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
@@ -530,10 +575,50 @@ func (_q *CourseSectionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 			return nil, err
 		}
 	}
+	if query := _q.withCourseAssistants; query != nil {
+		if err := _q.loadCourseAssistants(ctx, query, nodes,
+			func(n *CourseSection) { n.Edges.CourseAssistants = []*User{} },
+			func(n *CourseSection, e *User) { n.Edges.CourseAssistants = append(n.Edges.CourseAssistants, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withStudents; query != nil {
 		if err := _q.loadStudents(ctx, query, nodes,
 			func(n *CourseSection) { n.Edges.Students = []*User{} },
 			func(n *CourseSection, e *User) { n.Edges.Students = append(n.Edges.Students, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedProfessors {
+		if err := _q.loadProfessors(ctx, query, nodes,
+			func(n *CourseSection) { n.appendNamedProfessors(name) },
+			func(n *CourseSection, e *User) { n.appendNamedProfessors(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedTeachingAssistants {
+		if err := _q.loadTeachingAssistants(ctx, query, nodes,
+			func(n *CourseSection) { n.appendNamedTeachingAssistants(name) },
+			func(n *CourseSection, e *User) { n.appendNamedTeachingAssistants(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedCourseAssistants {
+		if err := _q.loadCourseAssistants(ctx, query, nodes,
+			func(n *CourseSection) { n.appendNamedCourseAssistants(name) },
+			func(n *CourseSection, e *User) { n.appendNamedCourseAssistants(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedStudents {
+		if err := _q.loadStudents(ctx, query, nodes,
+			func(n *CourseSection) { n.appendNamedStudents(name) },
+			func(n *CourseSection, e *User) { n.appendNamedStudents(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -694,6 +779,67 @@ func (_q *CourseSectionQuery) loadTeachingAssistants(ctx context.Context, query 
 	}
 	return nil
 }
+func (_q *CourseSectionQuery) loadCourseAssistants(ctx context.Context, query *UserQuery, nodes []*CourseSection, init func(*CourseSection), assign func(*CourseSection, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*CourseSection)
+	nids := make(map[int]map[*CourseSection]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(coursesection.CourseAssistantsTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(coursesection.CourseAssistantsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(coursesection.CourseAssistantsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(coursesection.CourseAssistantsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*CourseSection]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "course_assistants" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (_q *CourseSectionQuery) loadStudents(ctx context.Context, query *UserQuery, nodes []*CourseSection, init func(*CourseSection), assign func(*CourseSection, *User)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*CourseSection)
@@ -758,6 +904,9 @@ func (_q *CourseSectionQuery) loadStudents(ctx context.Context, query *UserQuery
 
 func (_q *CourseSectionQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -835,6 +984,62 @@ func (_q *CourseSectionQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedProfessors tells the query-builder to eager-load the nodes that are connected to the "professors"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseSectionQuery) WithNamedProfessors(name string, opts ...func(*UserQuery)) *CourseSectionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedProfessors == nil {
+		_q.withNamedProfessors = make(map[string]*UserQuery)
+	}
+	_q.withNamedProfessors[name] = query
+	return _q
+}
+
+// WithNamedTeachingAssistants tells the query-builder to eager-load the nodes that are connected to the "teaching_assistants"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseSectionQuery) WithNamedTeachingAssistants(name string, opts ...func(*UserQuery)) *CourseSectionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedTeachingAssistants == nil {
+		_q.withNamedTeachingAssistants = make(map[string]*UserQuery)
+	}
+	_q.withNamedTeachingAssistants[name] = query
+	return _q
+}
+
+// WithNamedCourseAssistants tells the query-builder to eager-load the nodes that are connected to the "course_assistants"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseSectionQuery) WithNamedCourseAssistants(name string, opts ...func(*UserQuery)) *CourseSectionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedCourseAssistants == nil {
+		_q.withNamedCourseAssistants = make(map[string]*UserQuery)
+	}
+	_q.withNamedCourseAssistants[name] = query
+	return _q
+}
+
+// WithNamedStudents tells the query-builder to eager-load the nodes that are connected to the "students"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *CourseSectionQuery) WithNamedStudents(name string, opts ...func(*UserQuery)) *CourseSectionQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedStudents == nil {
+		_q.withNamedStudents = make(map[string]*UserQuery)
+	}
+	_q.withNamedStudents[name] = query
+	return _q
 }
 
 // CourseSectionGroupBy is the group-by builder for CourseSection entities.
