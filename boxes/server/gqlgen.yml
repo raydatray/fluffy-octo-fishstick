@@ -1,0 +1,22 @@
+schema:
+  - ent.graphql
+
+resolver:
+  layout: follow-schema
+  dir: .
+
+autobind:
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/course
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/coursesection
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/discussionboard
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/post
+  - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent/user
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+  Node:
+    model:
+      - github.com/raydatray/fluffy-octo-fishstick/boxes/server/ent.Noder
