@@ -531,6 +531,9 @@ type CourseSectionMutation struct {
 	teaching_assistants        map[int]struct{}
 	removedteaching_assistants map[int]struct{}
 	clearedteaching_assistants bool
+	course_assistants          map[int]struct{}
+	removedcourse_assistants   map[int]struct{}
+	clearedcourse_assistants   bool
 	students                   map[int]struct{}
 	removedstudents            map[int]struct{}
 	clearedstudents            bool
@@ -840,6 +843,60 @@ func (m *CourseSectionMutation) ResetTeachingAssistants() {
 	m.removedteaching_assistants = nil
 }
 
+// AddCourseAssistantIDs adds the "course_assistants" edge to the User entity by ids.
+func (m *CourseSectionMutation) AddCourseAssistantIDs(ids ...int) {
+	if m.course_assistants == nil {
+		m.course_assistants = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.course_assistants[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCourseAssistants clears the "course_assistants" edge to the User entity.
+func (m *CourseSectionMutation) ClearCourseAssistants() {
+	m.clearedcourse_assistants = true
+}
+
+// CourseAssistantsCleared reports if the "course_assistants" edge to the User entity was cleared.
+func (m *CourseSectionMutation) CourseAssistantsCleared() bool {
+	return m.clearedcourse_assistants
+}
+
+// RemoveCourseAssistantIDs removes the "course_assistants" edge to the User entity by IDs.
+func (m *CourseSectionMutation) RemoveCourseAssistantIDs(ids ...int) {
+	if m.removedcourse_assistants == nil {
+		m.removedcourse_assistants = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.course_assistants, ids[i])
+		m.removedcourse_assistants[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCourseAssistants returns the removed IDs of the "course_assistants" edge to the User entity.
+func (m *CourseSectionMutation) RemovedCourseAssistantsIDs() (ids []int) {
+	for id := range m.removedcourse_assistants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CourseAssistantsIDs returns the "course_assistants" edge IDs in the mutation.
+func (m *CourseSectionMutation) CourseAssistantsIDs() (ids []int) {
+	for id := range m.course_assistants {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCourseAssistants resets all changes to the "course_assistants" edge.
+func (m *CourseSectionMutation) ResetCourseAssistants() {
+	m.course_assistants = nil
+	m.clearedcourse_assistants = false
+	m.removedcourse_assistants = nil
+}
+
 // AddStudentIDs adds the "students" edge to the User entity by ids.
 func (m *CourseSectionMutation) AddStudentIDs(ids ...int) {
 	if m.students == nil {
@@ -1042,7 +1099,7 @@ func (m *CourseSectionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CourseSectionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.course != nil {
 		edges = append(edges, coursesection.EdgeCourse)
 	}
@@ -1051,6 +1108,9 @@ func (m *CourseSectionMutation) AddedEdges() []string {
 	}
 	if m.teaching_assistants != nil {
 		edges = append(edges, coursesection.EdgeTeachingAssistants)
+	}
+	if m.course_assistants != nil {
+		edges = append(edges, coursesection.EdgeCourseAssistants)
 	}
 	if m.students != nil {
 		edges = append(edges, coursesection.EdgeStudents)
@@ -1078,6 +1138,12 @@ func (m *CourseSectionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case coursesection.EdgeCourseAssistants:
+		ids := make([]ent.Value, 0, len(m.course_assistants))
+		for id := range m.course_assistants {
+			ids = append(ids, id)
+		}
+		return ids
 	case coursesection.EdgeStudents:
 		ids := make([]ent.Value, 0, len(m.students))
 		for id := range m.students {
@@ -1090,12 +1156,15 @@ func (m *CourseSectionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CourseSectionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedprofessors != nil {
 		edges = append(edges, coursesection.EdgeProfessors)
 	}
 	if m.removedteaching_assistants != nil {
 		edges = append(edges, coursesection.EdgeTeachingAssistants)
+	}
+	if m.removedcourse_assistants != nil {
+		edges = append(edges, coursesection.EdgeCourseAssistants)
 	}
 	if m.removedstudents != nil {
 		edges = append(edges, coursesection.EdgeStudents)
@@ -1119,6 +1188,12 @@ func (m *CourseSectionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case coursesection.EdgeCourseAssistants:
+		ids := make([]ent.Value, 0, len(m.removedcourse_assistants))
+		for id := range m.removedcourse_assistants {
+			ids = append(ids, id)
+		}
+		return ids
 	case coursesection.EdgeStudents:
 		ids := make([]ent.Value, 0, len(m.removedstudents))
 		for id := range m.removedstudents {
@@ -1131,7 +1206,7 @@ func (m *CourseSectionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CourseSectionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedcourse {
 		edges = append(edges, coursesection.EdgeCourse)
 	}
@@ -1140,6 +1215,9 @@ func (m *CourseSectionMutation) ClearedEdges() []string {
 	}
 	if m.clearedteaching_assistants {
 		edges = append(edges, coursesection.EdgeTeachingAssistants)
+	}
+	if m.clearedcourse_assistants {
+		edges = append(edges, coursesection.EdgeCourseAssistants)
 	}
 	if m.clearedstudents {
 		edges = append(edges, coursesection.EdgeStudents)
@@ -1157,6 +1235,8 @@ func (m *CourseSectionMutation) EdgeCleared(name string) bool {
 		return m.clearedprofessors
 	case coursesection.EdgeTeachingAssistants:
 		return m.clearedteaching_assistants
+	case coursesection.EdgeCourseAssistants:
+		return m.clearedcourse_assistants
 	case coursesection.EdgeStudents:
 		return m.clearedstudents
 	}
@@ -1187,6 +1267,9 @@ func (m *CourseSectionMutation) ResetEdge(name string) error {
 	case coursesection.EdgeTeachingAssistants:
 		m.ResetTeachingAssistants()
 		return nil
+	case coursesection.EdgeCourseAssistants:
+		m.ResetCourseAssistants()
+		return nil
 	case coursesection.EdgeStudents:
 		m.ResetStudents()
 		return nil
@@ -1200,6 +1283,7 @@ type DiscussionBoardMutation struct {
 	op            Op
 	typ           string
 	id            *int
+	name          *string
 	clearedFields map[string]struct{}
 	posts         map[int]struct{}
 	removedposts  map[int]struct{}
@@ -1307,6 +1391,42 @@ func (m *DiscussionBoardMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetName sets the "name" field.
+func (m *DiscussionBoardMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *DiscussionBoardMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the DiscussionBoard entity.
+// If the DiscussionBoard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DiscussionBoardMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *DiscussionBoardMutation) ResetName() {
+	m.name = nil
 }
 
 // AddPostIDs adds the "posts" edge to the Post entity by ids.
@@ -1436,7 +1556,10 @@ func (m *DiscussionBoardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DiscussionBoardMutation) Fields() []string {
-	fields := make([]string, 0, 0)
+	fields := make([]string, 0, 1)
+	if m.name != nil {
+		fields = append(fields, discussionboard.FieldName)
+	}
 	return fields
 }
 
@@ -1444,6 +1567,10 @@ func (m *DiscussionBoardMutation) Fields() []string {
 // return value indicates that this field was not set, or was not defined in the
 // schema.
 func (m *DiscussionBoardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case discussionboard.FieldName:
+		return m.Name()
+	}
 	return nil, false
 }
 
@@ -1451,6 +1578,10 @@ func (m *DiscussionBoardMutation) Field(name string) (ent.Value, bool) {
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *DiscussionBoardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case discussionboard.FieldName:
+		return m.OldName(ctx)
+	}
 	return nil, fmt.Errorf("unknown DiscussionBoard field %s", name)
 }
 
@@ -1459,6 +1590,13 @@ func (m *DiscussionBoardMutation) OldField(ctx context.Context, name string) (en
 // type.
 func (m *DiscussionBoardMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case discussionboard.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
 	}
 	return fmt.Errorf("unknown DiscussionBoard field %s", name)
 }
@@ -1480,6 +1618,8 @@ func (m *DiscussionBoardMutation) AddedField(name string) (ent.Value, bool) {
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
 func (m *DiscussionBoardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown DiscussionBoard numeric field %s", name)
 }
 
@@ -1505,6 +1645,11 @@ func (m *DiscussionBoardMutation) ClearField(name string) error {
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
 func (m *DiscussionBoardMutation) ResetField(name string) error {
+	switch name {
+	case discussionboard.FieldName:
+		m.ResetName()
+		return nil
+	}
 	return fmt.Errorf("unknown DiscussionBoard field %s", name)
 }
 
@@ -2656,31 +2801,37 @@ func (m *ReplyMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *int
-	email                     *string
-	password                  *string
-	role                      *user.Role
-	clearedFields             map[string]struct{}
-	posts                     map[int]struct{}
-	removedposts              map[int]struct{}
-	clearedposts              bool
-	replies                   map[int]struct{}
-	removedreplies            map[int]struct{}
-	clearedreplies            bool
-	teaching_sections         map[int]struct{}
-	removedteaching_sections  map[int]struct{}
-	clearedteaching_sections  bool
-	assisting_sections        map[int]struct{}
-	removedassisting_sections map[int]struct{}
-	clearedassisting_sections bool
-	enrolled_sections         map[int]struct{}
-	removedenrolled_sections  map[int]struct{}
-	clearedenrolled_sections  bool
-	done                      bool
-	oldValue                  func(context.Context) (*User, error)
-	predicates                []predicate.User
+	op                                 Op
+	typ                                string
+	id                                 *int
+	first_name                         *string
+	middle_name                        *string
+	last_name                          *string
+	email                              *string
+	password                           *string
+	role                               *user.Role
+	clearedFields                      map[string]struct{}
+	posts                              map[int]struct{}
+	removedposts                       map[int]struct{}
+	clearedposts                       bool
+	replies                            map[int]struct{}
+	removedreplies                     map[int]struct{}
+	clearedreplies                     bool
+	teaching_sections                  map[int]struct{}
+	removedteaching_sections           map[int]struct{}
+	clearedteaching_sections           bool
+	teaching_assistant_sections        map[int]struct{}
+	removedteaching_assistant_sections map[int]struct{}
+	clearedteaching_assistant_sections bool
+	course_assistant_sections          map[int]struct{}
+	removedcourse_assistant_sections   map[int]struct{}
+	clearedcourse_assistant_sections   bool
+	enrolled_sections                  map[int]struct{}
+	removedenrolled_sections           map[int]struct{}
+	clearedenrolled_sections           bool
+	done                               bool
+	oldValue                           func(context.Context) (*User, error)
+	predicates                         []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2779,6 +2930,127 @@ func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetFirstName sets the "first_name" field.
+func (m *UserMutation) SetFirstName(s string) {
+	m.first_name = &s
+}
+
+// FirstName returns the value of the "first_name" field in the mutation.
+func (m *UserMutation) FirstName() (r string, exists bool) {
+	v := m.first_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirstName returns the old "first_name" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldFirstName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFirstName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFirstName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirstName: %w", err)
+	}
+	return oldValue.FirstName, nil
+}
+
+// ResetFirstName resets all changes to the "first_name" field.
+func (m *UserMutation) ResetFirstName() {
+	m.first_name = nil
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (m *UserMutation) SetMiddleName(s string) {
+	m.middle_name = &s
+}
+
+// MiddleName returns the value of the "middle_name" field in the mutation.
+func (m *UserMutation) MiddleName() (r string, exists bool) {
+	v := m.middle_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMiddleName returns the old "middle_name" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldMiddleName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMiddleName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMiddleName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMiddleName: %w", err)
+	}
+	return oldValue.MiddleName, nil
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (m *UserMutation) ClearMiddleName() {
+	m.middle_name = nil
+	m.clearedFields[user.FieldMiddleName] = struct{}{}
+}
+
+// MiddleNameCleared returns if the "middle_name" field was cleared in this mutation.
+func (m *UserMutation) MiddleNameCleared() bool {
+	_, ok := m.clearedFields[user.FieldMiddleName]
+	return ok
+}
+
+// ResetMiddleName resets all changes to the "middle_name" field.
+func (m *UserMutation) ResetMiddleName() {
+	m.middle_name = nil
+	delete(m.clearedFields, user.FieldMiddleName)
+}
+
+// SetLastName sets the "last_name" field.
+func (m *UserMutation) SetLastName(s string) {
+	m.last_name = &s
+}
+
+// LastName returns the value of the "last_name" field in the mutation.
+func (m *UserMutation) LastName() (r string, exists bool) {
+	v := m.last_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastName returns the old "last_name" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLastName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastName: %w", err)
+	}
+	return oldValue.LastName, nil
+}
+
+// ResetLastName resets all changes to the "last_name" field.
+func (m *UserMutation) ResetLastName() {
+	m.last_name = nil
 }
 
 // SetEmail sets the "email" field.
@@ -3051,58 +3323,112 @@ func (m *UserMutation) ResetTeachingSections() {
 	m.removedteaching_sections = nil
 }
 
-// AddAssistingSectionIDs adds the "assisting_sections" edge to the CourseSection entity by ids.
-func (m *UserMutation) AddAssistingSectionIDs(ids ...int) {
-	if m.assisting_sections == nil {
-		m.assisting_sections = make(map[int]struct{})
+// AddTeachingAssistantSectionIDs adds the "teaching_assistant_sections" edge to the CourseSection entity by ids.
+func (m *UserMutation) AddTeachingAssistantSectionIDs(ids ...int) {
+	if m.teaching_assistant_sections == nil {
+		m.teaching_assistant_sections = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.assisting_sections[ids[i]] = struct{}{}
+		m.teaching_assistant_sections[ids[i]] = struct{}{}
 	}
 }
 
-// ClearAssistingSections clears the "assisting_sections" edge to the CourseSection entity.
-func (m *UserMutation) ClearAssistingSections() {
-	m.clearedassisting_sections = true
+// ClearTeachingAssistantSections clears the "teaching_assistant_sections" edge to the CourseSection entity.
+func (m *UserMutation) ClearTeachingAssistantSections() {
+	m.clearedteaching_assistant_sections = true
 }
 
-// AssistingSectionsCleared reports if the "assisting_sections" edge to the CourseSection entity was cleared.
-func (m *UserMutation) AssistingSectionsCleared() bool {
-	return m.clearedassisting_sections
+// TeachingAssistantSectionsCleared reports if the "teaching_assistant_sections" edge to the CourseSection entity was cleared.
+func (m *UserMutation) TeachingAssistantSectionsCleared() bool {
+	return m.clearedteaching_assistant_sections
 }
 
-// RemoveAssistingSectionIDs removes the "assisting_sections" edge to the CourseSection entity by IDs.
-func (m *UserMutation) RemoveAssistingSectionIDs(ids ...int) {
-	if m.removedassisting_sections == nil {
-		m.removedassisting_sections = make(map[int]struct{})
+// RemoveTeachingAssistantSectionIDs removes the "teaching_assistant_sections" edge to the CourseSection entity by IDs.
+func (m *UserMutation) RemoveTeachingAssistantSectionIDs(ids ...int) {
+	if m.removedteaching_assistant_sections == nil {
+		m.removedteaching_assistant_sections = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.assisting_sections, ids[i])
-		m.removedassisting_sections[ids[i]] = struct{}{}
+		delete(m.teaching_assistant_sections, ids[i])
+		m.removedteaching_assistant_sections[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedAssistingSections returns the removed IDs of the "assisting_sections" edge to the CourseSection entity.
-func (m *UserMutation) RemovedAssistingSectionsIDs() (ids []int) {
-	for id := range m.removedassisting_sections {
+// RemovedTeachingAssistantSections returns the removed IDs of the "teaching_assistant_sections" edge to the CourseSection entity.
+func (m *UserMutation) RemovedTeachingAssistantSectionsIDs() (ids []int) {
+	for id := range m.removedteaching_assistant_sections {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// AssistingSectionsIDs returns the "assisting_sections" edge IDs in the mutation.
-func (m *UserMutation) AssistingSectionsIDs() (ids []int) {
-	for id := range m.assisting_sections {
+// TeachingAssistantSectionsIDs returns the "teaching_assistant_sections" edge IDs in the mutation.
+func (m *UserMutation) TeachingAssistantSectionsIDs() (ids []int) {
+	for id := range m.teaching_assistant_sections {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetAssistingSections resets all changes to the "assisting_sections" edge.
-func (m *UserMutation) ResetAssistingSections() {
-	m.assisting_sections = nil
-	m.clearedassisting_sections = false
-	m.removedassisting_sections = nil
+// ResetTeachingAssistantSections resets all changes to the "teaching_assistant_sections" edge.
+func (m *UserMutation) ResetTeachingAssistantSections() {
+	m.teaching_assistant_sections = nil
+	m.clearedteaching_assistant_sections = false
+	m.removedteaching_assistant_sections = nil
+}
+
+// AddCourseAssistantSectionIDs adds the "course_assistant_sections" edge to the CourseSection entity by ids.
+func (m *UserMutation) AddCourseAssistantSectionIDs(ids ...int) {
+	if m.course_assistant_sections == nil {
+		m.course_assistant_sections = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.course_assistant_sections[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCourseAssistantSections clears the "course_assistant_sections" edge to the CourseSection entity.
+func (m *UserMutation) ClearCourseAssistantSections() {
+	m.clearedcourse_assistant_sections = true
+}
+
+// CourseAssistantSectionsCleared reports if the "course_assistant_sections" edge to the CourseSection entity was cleared.
+func (m *UserMutation) CourseAssistantSectionsCleared() bool {
+	return m.clearedcourse_assistant_sections
+}
+
+// RemoveCourseAssistantSectionIDs removes the "course_assistant_sections" edge to the CourseSection entity by IDs.
+func (m *UserMutation) RemoveCourseAssistantSectionIDs(ids ...int) {
+	if m.removedcourse_assistant_sections == nil {
+		m.removedcourse_assistant_sections = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.course_assistant_sections, ids[i])
+		m.removedcourse_assistant_sections[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCourseAssistantSections returns the removed IDs of the "course_assistant_sections" edge to the CourseSection entity.
+func (m *UserMutation) RemovedCourseAssistantSectionsIDs() (ids []int) {
+	for id := range m.removedcourse_assistant_sections {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CourseAssistantSectionsIDs returns the "course_assistant_sections" edge IDs in the mutation.
+func (m *UserMutation) CourseAssistantSectionsIDs() (ids []int) {
+	for id := range m.course_assistant_sections {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCourseAssistantSections resets all changes to the "course_assistant_sections" edge.
+func (m *UserMutation) ResetCourseAssistantSections() {
+	m.course_assistant_sections = nil
+	m.clearedcourse_assistant_sections = false
+	m.removedcourse_assistant_sections = nil
 }
 
 // AddEnrolledSectionIDs adds the "enrolled_sections" edge to the CourseSection entity by ids.
@@ -3193,7 +3519,16 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 6)
+	if m.first_name != nil {
+		fields = append(fields, user.FieldFirstName)
+	}
+	if m.middle_name != nil {
+		fields = append(fields, user.FieldMiddleName)
+	}
+	if m.last_name != nil {
+		fields = append(fields, user.FieldLastName)
+	}
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -3211,6 +3546,12 @@ func (m *UserMutation) Fields() []string {
 // schema.
 func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldFirstName:
+		return m.FirstName()
+	case user.FieldMiddleName:
+		return m.MiddleName()
+	case user.FieldLastName:
+		return m.LastName()
 	case user.FieldEmail:
 		return m.Email()
 	case user.FieldPassword:
@@ -3226,6 +3567,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case user.FieldFirstName:
+		return m.OldFirstName(ctx)
+	case user.FieldMiddleName:
+		return m.OldMiddleName(ctx)
+	case user.FieldLastName:
+		return m.OldLastName(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
 	case user.FieldPassword:
@@ -3241,6 +3588,27 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *UserMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldFirstName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirstName(v)
+		return nil
+	case user.FieldMiddleName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMiddleName(v)
+		return nil
+	case user.FieldLastName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastName(v)
+		return nil
 	case user.FieldEmail:
 		v, ok := value.(string)
 		if !ok {
@@ -3291,7 +3659,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldMiddleName) {
+		fields = append(fields, user.FieldMiddleName)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3304,6 +3676,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldMiddleName:
+		m.ClearMiddleName()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -3311,6 +3688,15 @@ func (m *UserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserMutation) ResetField(name string) error {
 	switch name {
+	case user.FieldFirstName:
+		m.ResetFirstName()
+		return nil
+	case user.FieldMiddleName:
+		m.ResetMiddleName()
+		return nil
+	case user.FieldLastName:
+		m.ResetLastName()
+		return nil
 	case user.FieldEmail:
 		m.ResetEmail()
 		return nil
@@ -3326,7 +3712,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.posts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3336,8 +3722,11 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.teaching_sections != nil {
 		edges = append(edges, user.EdgeTeachingSections)
 	}
-	if m.assisting_sections != nil {
-		edges = append(edges, user.EdgeAssistingSections)
+	if m.teaching_assistant_sections != nil {
+		edges = append(edges, user.EdgeTeachingAssistantSections)
+	}
+	if m.course_assistant_sections != nil {
+		edges = append(edges, user.EdgeCourseAssistantSections)
 	}
 	if m.enrolled_sections != nil {
 		edges = append(edges, user.EdgeEnrolledSections)
@@ -3367,9 +3756,15 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeAssistingSections:
-		ids := make([]ent.Value, 0, len(m.assisting_sections))
-		for id := range m.assisting_sections {
+	case user.EdgeTeachingAssistantSections:
+		ids := make([]ent.Value, 0, len(m.teaching_assistant_sections))
+		for id := range m.teaching_assistant_sections {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCourseAssistantSections:
+		ids := make([]ent.Value, 0, len(m.course_assistant_sections))
+		for id := range m.course_assistant_sections {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3385,7 +3780,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3395,8 +3790,11 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedteaching_sections != nil {
 		edges = append(edges, user.EdgeTeachingSections)
 	}
-	if m.removedassisting_sections != nil {
-		edges = append(edges, user.EdgeAssistingSections)
+	if m.removedteaching_assistant_sections != nil {
+		edges = append(edges, user.EdgeTeachingAssistantSections)
+	}
+	if m.removedcourse_assistant_sections != nil {
+		edges = append(edges, user.EdgeCourseAssistantSections)
 	}
 	if m.removedenrolled_sections != nil {
 		edges = append(edges, user.EdgeEnrolledSections)
@@ -3426,9 +3824,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeAssistingSections:
-		ids := make([]ent.Value, 0, len(m.removedassisting_sections))
-		for id := range m.removedassisting_sections {
+	case user.EdgeTeachingAssistantSections:
+		ids := make([]ent.Value, 0, len(m.removedteaching_assistant_sections))
+		for id := range m.removedteaching_assistant_sections {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCourseAssistantSections:
+		ids := make([]ent.Value, 0, len(m.removedcourse_assistant_sections))
+		for id := range m.removedcourse_assistant_sections {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3444,7 +3848,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedposts {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3454,8 +3858,11 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedteaching_sections {
 		edges = append(edges, user.EdgeTeachingSections)
 	}
-	if m.clearedassisting_sections {
-		edges = append(edges, user.EdgeAssistingSections)
+	if m.clearedteaching_assistant_sections {
+		edges = append(edges, user.EdgeTeachingAssistantSections)
+	}
+	if m.clearedcourse_assistant_sections {
+		edges = append(edges, user.EdgeCourseAssistantSections)
 	}
 	if m.clearedenrolled_sections {
 		edges = append(edges, user.EdgeEnrolledSections)
@@ -3473,8 +3880,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedreplies
 	case user.EdgeTeachingSections:
 		return m.clearedteaching_sections
-	case user.EdgeAssistingSections:
-		return m.clearedassisting_sections
+	case user.EdgeTeachingAssistantSections:
+		return m.clearedteaching_assistant_sections
+	case user.EdgeCourseAssistantSections:
+		return m.clearedcourse_assistant_sections
 	case user.EdgeEnrolledSections:
 		return m.clearedenrolled_sections
 	}
@@ -3502,8 +3911,11 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeTeachingSections:
 		m.ResetTeachingSections()
 		return nil
-	case user.EdgeAssistingSections:
-		m.ResetAssistingSections()
+	case user.EdgeTeachingAssistantSections:
+		m.ResetTeachingAssistantSections()
+		return nil
+	case user.EdgeCourseAssistantSections:
+		m.ResetCourseAssistantSections()
 		return nil
 	case user.EdgeEnrolledSections:
 		m.ResetEnrolledSections()

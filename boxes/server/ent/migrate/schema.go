@@ -42,6 +42,7 @@ var (
 	// DiscussionBoardsColumns holds the columns for the "discussion_boards" table.
 	DiscussionBoardsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
 		{Name: "course_discussion_board", Type: field.TypeInt, Unique: true},
 	}
 	// DiscussionBoardsTable holds the schema information for the "discussion_boards" table.
@@ -52,7 +53,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "discussion_boards_courses_discussion_board",
-				Columns:    []*schema.Column{DiscussionBoardsColumns[1]},
+				Columns:    []*schema.Column{DiscussionBoardsColumns[2]},
 				RefColumns: []*schema.Column{CoursesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -116,9 +117,12 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "first_name", Type: field.TypeString},
+		{Name: "middle_name", Type: field.TypeString, Nullable: true},
+		{Name: "last_name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"PROFESSOR", "TA", "STUDENT"}, Default: "STUDENT"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"PROFESSOR", "TA", "CA", "STUDENT"}, Default: "STUDENT"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -151,26 +155,51 @@ var (
 			},
 		},
 	}
-	// UserAssistingSectionsColumns holds the columns for the "user_assisting_sections" table.
-	UserAssistingSectionsColumns = []*schema.Column{
+	// UserTeachingAssistantSectionsColumns holds the columns for the "user_teaching_assistant_sections" table.
+	UserTeachingAssistantSectionsColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "course_section_id", Type: field.TypeInt},
 	}
-	// UserAssistingSectionsTable holds the schema information for the "user_assisting_sections" table.
-	UserAssistingSectionsTable = &schema.Table{
-		Name:       "user_assisting_sections",
-		Columns:    UserAssistingSectionsColumns,
-		PrimaryKey: []*schema.Column{UserAssistingSectionsColumns[0], UserAssistingSectionsColumns[1]},
+	// UserTeachingAssistantSectionsTable holds the schema information for the "user_teaching_assistant_sections" table.
+	UserTeachingAssistantSectionsTable = &schema.Table{
+		Name:       "user_teaching_assistant_sections",
+		Columns:    UserTeachingAssistantSectionsColumns,
+		PrimaryKey: []*schema.Column{UserTeachingAssistantSectionsColumns[0], UserTeachingAssistantSectionsColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "user_assisting_sections_user_id",
-				Columns:    []*schema.Column{UserAssistingSectionsColumns[0]},
+				Symbol:     "user_teaching_assistant_sections_user_id",
+				Columns:    []*schema.Column{UserTeachingAssistantSectionsColumns[0]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "user_assisting_sections_course_section_id",
-				Columns:    []*schema.Column{UserAssistingSectionsColumns[1]},
+				Symbol:     "user_teaching_assistant_sections_course_section_id",
+				Columns:    []*schema.Column{UserTeachingAssistantSectionsColumns[1]},
+				RefColumns: []*schema.Column{CourseSectionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserCourseAssistantSectionsColumns holds the columns for the "user_course_assistant_sections" table.
+	UserCourseAssistantSectionsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "course_section_id", Type: field.TypeInt},
+	}
+	// UserCourseAssistantSectionsTable holds the schema information for the "user_course_assistant_sections" table.
+	UserCourseAssistantSectionsTable = &schema.Table{
+		Name:       "user_course_assistant_sections",
+		Columns:    UserCourseAssistantSectionsColumns,
+		PrimaryKey: []*schema.Column{UserCourseAssistantSectionsColumns[0], UserCourseAssistantSectionsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_course_assistant_sections_user_id",
+				Columns:    []*schema.Column{UserCourseAssistantSectionsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_course_assistant_sections_course_section_id",
+				Columns:    []*schema.Column{UserCourseAssistantSectionsColumns[1]},
 				RefColumns: []*schema.Column{CourseSectionsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -210,7 +239,8 @@ var (
 		RepliesTable,
 		UsersTable,
 		UserTeachingSectionsTable,
-		UserAssistingSectionsTable,
+		UserTeachingAssistantSectionsTable,
+		UserCourseAssistantSectionsTable,
 		UserEnrolledSectionsTable,
 	}
 )
@@ -224,8 +254,10 @@ func init() {
 	RepliesTable.ForeignKeys[1].RefTable = UsersTable
 	UserTeachingSectionsTable.ForeignKeys[0].RefTable = UsersTable
 	UserTeachingSectionsTable.ForeignKeys[1].RefTable = CourseSectionsTable
-	UserAssistingSectionsTable.ForeignKeys[0].RefTable = UsersTable
-	UserAssistingSectionsTable.ForeignKeys[1].RefTable = CourseSectionsTable
+	UserTeachingAssistantSectionsTable.ForeignKeys[0].RefTable = UsersTable
+	UserTeachingAssistantSectionsTable.ForeignKeys[1].RefTable = CourseSectionsTable
+	UserCourseAssistantSectionsTable.ForeignKeys[0].RefTable = UsersTable
+	UserCourseAssistantSectionsTable.ForeignKeys[1].RefTable = CourseSectionsTable
 	UserEnrolledSectionsTable.ForeignKeys[0].RefTable = UsersTable
 	UserEnrolledSectionsTable.ForeignKeys[1].RefTable = CourseSectionsTable
 }
