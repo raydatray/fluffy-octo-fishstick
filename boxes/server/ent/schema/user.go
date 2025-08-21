@@ -12,10 +12,13 @@ type User struct {
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("first_name").NotEmpty(),
+		field.String("middle_name").Optional(),
+		field.String("last_name").NotEmpty(),
 		field.String("email").Unique(),
 		field.String("password"),
 		field.Enum("role").
-			Values("PROFESSOR", "TA", "STUDENT").
+			Values("PROFESSOR", "TA", "CA", "STUDENT").
 			Default("STUDENT"),
 	}
 }
@@ -25,7 +28,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("posts", Post.Type),
 		edge.To("replies", Reply.Type),
 		edge.To("teaching_sections", CourseSection.Type),
-		edge.To("assisting_sections", CourseSection.Type),
+		edge.To("teaching_assistant_sections", CourseSection.Type),
+		edge.To("course_assistant_sections", CourseSection.Type),
 		edge.To("enrolled_sections", CourseSection.Type),
 	}
 }

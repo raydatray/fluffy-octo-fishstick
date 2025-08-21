@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 )
 
 type DiscussionBoard struct {
@@ -10,7 +11,9 @@ type DiscussionBoard struct {
 }
 
 func (DiscussionBoard) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.String("name").NotEmpty(),
+	}
 }
 
 func (DiscussionBoard) Edges() []ent.Edge {
