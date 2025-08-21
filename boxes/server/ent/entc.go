@@ -17,13 +17,13 @@ func main() {
 		entgql.WithConfigPath("gqlgen.yml"),
 	)
 	if err != nil {
-		log.Fatalf("creating entgql extension: %v", err)
+		log.Fatal("creating entgql extension", err)
 	}
 
 	opts := []entc.Option{
 		entc.Extensions(ex),
 	}
 	if err := entc.Generate("./ent/schema", &gen.Config{}, opts...); err != nil {
-		log.Fatalf("running ent gencode: %v", err)
+		log.Fatal("running ent gencode", err)
 	}
 }
