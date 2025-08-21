@@ -34,11 +34,20 @@ type CourseSectionEdges struct {
 	Professors []*User `json:"professors,omitempty"`
 	// TeachingAssistants holds the value of the teaching_assistants edge.
 	TeachingAssistants []*User `json:"teaching_assistants,omitempty"`
+	// CourseAssistants holds the value of the course_assistants edge.
+	CourseAssistants []*User `json:"course_assistants,omitempty"`
 	// Students holds the value of the students edge.
 	Students []*User `json:"students,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
+	// totalCount holds the count of the edges above.
+	totalCount [5]map[string]int
+
+	namedProfessors         map[string][]*User
+	namedTeachingAssistants map[string][]*User
+	namedCourseAssistants   map[string][]*User
+	namedStudents           map[string][]*User
 }
 
 // CourseOrErr returns the Course value or an error if the edge
@@ -70,10 +79,19 @@ func (e CourseSectionEdges) TeachingAssistantsOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "teaching_assistants"}
 }
 
+// CourseAssistantsOrErr returns the CourseAssistants value or an error if the edge
+// was not loaded in eager-loading.
+func (e CourseSectionEdges) CourseAssistantsOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.CourseAssistants, nil
+	}
+	return nil, &NotLoadedError{edge: "course_assistants"}
+}
+
 // StudentsOrErr returns the Students value or an error if the edge
 // was not loaded in eager-loading.
 func (e CourseSectionEdges) StudentsOrErr() ([]*User, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Students, nil
 	}
 	return nil, &NotLoadedError{edge: "students"}
@@ -150,6 +168,11 @@ func (_m *CourseSection) QueryTeachingAssistants() *UserQuery {
 	return NewCourseSectionClient(_m.config).QueryTeachingAssistants(_m)
 }
 
+// QueryCourseAssistants queries the "course_assistants" edge of the CourseSection entity.
+func (_m *CourseSection) QueryCourseAssistants() *UserQuery {
+	return NewCourseSectionClient(_m.config).QueryCourseAssistants(_m)
+}
+
 // QueryStudents queries the "students" edge of the CourseSection entity.
 func (_m *CourseSection) QueryStudents() *UserQuery {
 	return NewCourseSectionClient(_m.config).QueryStudents(_m)
@@ -182,6 +205,102 @@ func (_m *CourseSection) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.Number))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedProfessors returns the Professors named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *CourseSection) NamedProfessors(name string) ([]*User, error) {
+	if _m.Edges.namedProfessors == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedProfessors[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *CourseSection) appendNamedProfessors(name string, edges ...*User) {
+	if _m.Edges.namedProfessors == nil {
+		_m.Edges.namedProfessors = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedProfessors[name] = []*User{}
+	} else {
+		_m.Edges.namedProfessors[name] = append(_m.Edges.namedProfessors[name], edges...)
+	}
+}
+
+// NamedTeachingAssistants returns the TeachingAssistants named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *CourseSection) NamedTeachingAssistants(name string) ([]*User, error) {
+	if _m.Edges.namedTeachingAssistants == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedTeachingAssistants[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *CourseSection) appendNamedTeachingAssistants(name string, edges ...*User) {
+	if _m.Edges.namedTeachingAssistants == nil {
+		_m.Edges.namedTeachingAssistants = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedTeachingAssistants[name] = []*User{}
+	} else {
+		_m.Edges.namedTeachingAssistants[name] = append(_m.Edges.namedTeachingAssistants[name], edges...)
+	}
+}
+
+// NamedCourseAssistants returns the CourseAssistants named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *CourseSection) NamedCourseAssistants(name string) ([]*User, error) {
+	if _m.Edges.namedCourseAssistants == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedCourseAssistants[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *CourseSection) appendNamedCourseAssistants(name string, edges ...*User) {
+	if _m.Edges.namedCourseAssistants == nil {
+		_m.Edges.namedCourseAssistants = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedCourseAssistants[name] = []*User{}
+	} else {
+		_m.Edges.namedCourseAssistants[name] = append(_m.Edges.namedCourseAssistants[name], edges...)
+	}
+}
+
+// NamedStudents returns the Students named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *CourseSection) NamedStudents(name string) ([]*User, error) {
+	if _m.Edges.namedStudents == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedStudents[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *CourseSection) appendNamedStudents(name string, edges ...*User) {
+	if _m.Edges.namedStudents == nil {
+		_m.Edges.namedStudents = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedStudents[name] = []*User{}
+	} else {
+		_m.Edges.namedStudents[name] = append(_m.Edges.namedStudents[name], edges...)
+	}
 }
 
 // CourseSections is a parsable slice of CourseSection.

@@ -68,6 +68,21 @@ func (_c *CourseSectionCreate) AddTeachingAssistants(v ...*User) *CourseSectionC
 	return _c.AddTeachingAssistantIDs(ids...)
 }
 
+// AddCourseAssistantIDs adds the "course_assistants" edge to the User entity by IDs.
+func (_c *CourseSectionCreate) AddCourseAssistantIDs(ids ...int) *CourseSectionCreate {
+	_c.mutation.AddCourseAssistantIDs(ids...)
+	return _c
+}
+
+// AddCourseAssistants adds the "course_assistants" edges to the User entity.
+func (_c *CourseSectionCreate) AddCourseAssistants(v ...*User) *CourseSectionCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCourseAssistantIDs(ids...)
+}
+
 // AddStudentIDs adds the "students" edge to the User entity by IDs.
 func (_c *CourseSectionCreate) AddStudentIDs(ids ...int) *CourseSectionCreate {
 	_c.mutation.AddStudentIDs(ids...)
@@ -195,6 +210,22 @@ func (_c *CourseSectionCreate) createSpec() (*CourseSection, *sqlgraph.CreateSpe
 			Inverse: true,
 			Table:   coursesection.TeachingAssistantsTable,
 			Columns: coursesection.TeachingAssistantsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CourseAssistantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   coursesection.CourseAssistantsTable,
+			Columns: coursesection.CourseAssistantsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),

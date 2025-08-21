@@ -40,6 +40,8 @@ type Client struct {
 	Reply *ReplyClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.
@@ -559,6 +561,22 @@ func (c *CourseSectionClient) QueryTeachingAssistants(_m *CourseSection) *UserQu
 			sqlgraph.From(coursesection.Table, coursesection.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, coursesection.TeachingAssistantsTable, coursesection.TeachingAssistantsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCourseAssistants queries the course_assistants edge of a CourseSection.
+func (c *CourseSectionClient) QueryCourseAssistants(_m *CourseSection) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(coursesection.Table, coursesection.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, coursesection.CourseAssistantsTable, coursesection.CourseAssistantsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1274,15 +1292,31 @@ func (c *UserClient) QueryTeachingSections(_m *User) *CourseSectionQuery {
 	return query
 }
 
-// QueryAssistingSections queries the assisting_sections edge of a User.
-func (c *UserClient) QueryAssistingSections(_m *User) *CourseSectionQuery {
+// QueryTeachingAssistantSections queries the teaching_assistant_sections edge of a User.
+func (c *UserClient) QueryTeachingAssistantSections(_m *User) *CourseSectionQuery {
 	query := (&CourseSectionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(coursesection.Table, coursesection.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.AssistingSectionsTable, user.AssistingSectionsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.TeachingAssistantSectionsTable, user.TeachingAssistantSectionsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCourseAssistantSections queries the course_assistant_sections edge of a User.
+func (c *UserClient) QueryCourseAssistantSections(_m *User) *CourseSectionQuery {
+	query := (&CourseSectionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(coursesection.Table, coursesection.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.CourseAssistantSectionsTable, user.CourseAssistantSectionsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
