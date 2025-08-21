@@ -21,13 +21,16 @@ import (
 // DiscussionBoardQuery is the builder for querying DiscussionBoard entities.
 type DiscussionBoardQuery struct {
 	config
-	ctx        *QueryContext
-	order      []discussionboard.OrderOption
-	inters     []Interceptor
-	predicates []predicate.DiscussionBoard
-	withPosts  *PostQuery
-	withCourse *CourseQuery
-	withFKs    bool
+	ctx            *QueryContext
+	order          []discussionboard.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.DiscussionBoard
+	withPosts      *PostQuery
+	withCourse     *CourseQuery
+	withFKs        bool
+	modifiers      []func(*sql.Selector)
+	loadTotal      []func(context.Context, []*DiscussionBoard) error
+	withNamedPosts map[string]*PostQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -332,6 +335,18 @@ func (_q *DiscussionBoardQuery) WithCourse(opts ...func(*CourseQuery)) *Discussi
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.DiscussionBoard.Query().
+//		GroupBy(discussionboard.FieldName).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
 func (_q *DiscussionBoardQuery) GroupBy(field string, fields ...string) *DiscussionBoardGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &DiscussionBoardGroupBy{build: _q}
@@ -343,6 +358,16 @@ func (_q *DiscussionBoardQuery) GroupBy(field string, fields ...string) *Discuss
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		Name string `json:"name,omitempty"`
+//	}
+//
+//	client.DiscussionBoard.Query().
+//		Select(discussionboard.FieldName).
+//		Scan(ctx, &v)
 func (_q *DiscussionBoardQuery) Select(fields ...string) *DiscussionBoardSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
 	sbuild := &DiscussionBoardSelect{DiscussionBoardQuery: _q}
@@ -407,6 +432,9 @@ func (_q *DiscussionBoardQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -426,6 +454,18 @@ func (_q *DiscussionBoardQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withCourse; query != nil {
 		if err := _q.loadCourse(ctx, query, nodes, nil,
 			func(n *DiscussionBoard, e *Course) { n.Edges.Course = e }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedPosts {
+		if err := _q.loadPosts(ctx, query, nodes,
+			func(n *DiscussionBoard) { n.appendNamedPosts(name) },
+			func(n *DiscussionBoard, e *Post) { n.appendNamedPosts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -498,6 +538,9 @@ func (_q *DiscussionBoardQuery) loadCourse(ctx context.Context, query *CourseQue
 
 func (_q *DiscussionBoardQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -575,6 +618,20 @@ func (_q *DiscussionBoardQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedPosts tells the query-builder to eager-load the nodes that are connected to the "posts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *DiscussionBoardQuery) WithNamedPosts(name string, opts ...func(*PostQuery)) *DiscussionBoardQuery {
+	query := (&PostClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedPosts == nil {
+		_q.withNamedPosts = make(map[string]*PostQuery)
+	}
+	_q.withNamedPosts[name] = query
+	return _q
 }
 
 // DiscussionBoardGroupBy is the group-by builder for DiscussionBoard entities.

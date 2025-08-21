@@ -21,6 +21,12 @@ type DiscussionBoardCreate struct {
 	hooks    []Hook
 }
 
+// SetName sets the "name" field.
+func (_c *DiscussionBoardCreate) SetName(v string) *DiscussionBoardCreate {
+	_c.mutation.SetName(v)
+	return _c
+}
+
 // AddPostIDs adds the "posts" edge to the Post entity by IDs.
 func (_c *DiscussionBoardCreate) AddPostIDs(ids ...int) *DiscussionBoardCreate {
 	_c.mutation.AddPostIDs(ids...)
@@ -81,6 +87,14 @@ func (_c *DiscussionBoardCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *DiscussionBoardCreate) check() error {
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "DiscussionBoard.name"`)}
+	}
+	if v, ok := _c.mutation.Name(); ok {
+		if err := discussionboard.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "DiscussionBoard.name": %w`, err)}
+		}
+	}
 	if len(_c.mutation.CourseIDs()) == 0 {
 		return &ValidationError{Name: "course", err: errors.New(`ent: missing required edge "DiscussionBoard.course"`)}
 	}
@@ -110,6 +124,10 @@ func (_c *DiscussionBoardCreate) createSpec() (*DiscussionBoard, *sqlgraph.Creat
 		_node = &DiscussionBoard{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(discussionboard.Table, sqlgraph.NewFieldSpec(discussionboard.FieldID, field.TypeInt))
 	)
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(discussionboard.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
 	if nodes := _c.mutation.PostsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,

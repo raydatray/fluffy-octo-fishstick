@@ -16,6 +16,12 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// FirstName holds the value of the "first_name" field.
+	FirstName string `json:"first_name,omitempty"`
+	// MiddleName holds the value of the "middle_name" field.
+	MiddleName string `json:"middle_name,omitempty"`
+	// LastName holds the value of the "last_name" field.
+	LastName string `json:"last_name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
@@ -36,13 +42,24 @@ type UserEdges struct {
 	Replies []*Reply `json:"replies,omitempty"`
 	// TeachingSections holds the value of the teaching_sections edge.
 	TeachingSections []*CourseSection `json:"teaching_sections,omitempty"`
-	// AssistingSections holds the value of the assisting_sections edge.
-	AssistingSections []*CourseSection `json:"assisting_sections,omitempty"`
+	// TeachingAssistantSections holds the value of the teaching_assistant_sections edge.
+	TeachingAssistantSections []*CourseSection `json:"teaching_assistant_sections,omitempty"`
+	// CourseAssistantSections holds the value of the course_assistant_sections edge.
+	CourseAssistantSections []*CourseSection `json:"course_assistant_sections,omitempty"`
 	// EnrolledSections holds the value of the enrolled_sections edge.
 	EnrolledSections []*CourseSection `json:"enrolled_sections,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
+	// totalCount holds the count of the edges above.
+	totalCount [6]map[string]int
+
+	namedPosts                     map[string][]*Post
+	namedReplies                   map[string][]*Reply
+	namedTeachingSections          map[string][]*CourseSection
+	namedTeachingAssistantSections map[string][]*CourseSection
+	namedCourseAssistantSections   map[string][]*CourseSection
+	namedEnrolledSections          map[string][]*CourseSection
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -72,19 +89,28 @@ func (e UserEdges) TeachingSectionsOrErr() ([]*CourseSection, error) {
 	return nil, &NotLoadedError{edge: "teaching_sections"}
 }
 
-// AssistingSectionsOrErr returns the AssistingSections value or an error if the edge
+// TeachingAssistantSectionsOrErr returns the TeachingAssistantSections value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AssistingSectionsOrErr() ([]*CourseSection, error) {
+func (e UserEdges) TeachingAssistantSectionsOrErr() ([]*CourseSection, error) {
 	if e.loadedTypes[3] {
-		return e.AssistingSections, nil
+		return e.TeachingAssistantSections, nil
 	}
-	return nil, &NotLoadedError{edge: "assisting_sections"}
+	return nil, &NotLoadedError{edge: "teaching_assistant_sections"}
+}
+
+// CourseAssistantSectionsOrErr returns the CourseAssistantSections value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CourseAssistantSectionsOrErr() ([]*CourseSection, error) {
+	if e.loadedTypes[4] {
+		return e.CourseAssistantSections, nil
+	}
+	return nil, &NotLoadedError{edge: "course_assistant_sections"}
 }
 
 // EnrolledSectionsOrErr returns the EnrolledSections value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) EnrolledSectionsOrErr() ([]*CourseSection, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.EnrolledSections, nil
 	}
 	return nil, &NotLoadedError{edge: "enrolled_sections"}
@@ -97,7 +123,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldEmail, user.FieldPassword, user.FieldRole:
+		case user.FieldFirstName, user.FieldMiddleName, user.FieldLastName, user.FieldEmail, user.FieldPassword, user.FieldRole:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -120,6 +146,24 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case user.FieldFirstName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field first_name", values[i])
+			} else if value.Valid {
+				_m.FirstName = value.String
+			}
+		case user.FieldMiddleName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field middle_name", values[i])
+			} else if value.Valid {
+				_m.MiddleName = value.String
+			}
+		case user.FieldLastName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_name", values[i])
+			} else if value.Valid {
+				_m.LastName = value.String
+			}
 		case user.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
@@ -166,9 +210,14 @@ func (_m *User) QueryTeachingSections() *CourseSectionQuery {
 	return NewUserClient(_m.config).QueryTeachingSections(_m)
 }
 
-// QueryAssistingSections queries the "assisting_sections" edge of the User entity.
-func (_m *User) QueryAssistingSections() *CourseSectionQuery {
-	return NewUserClient(_m.config).QueryAssistingSections(_m)
+// QueryTeachingAssistantSections queries the "teaching_assistant_sections" edge of the User entity.
+func (_m *User) QueryTeachingAssistantSections() *CourseSectionQuery {
+	return NewUserClient(_m.config).QueryTeachingAssistantSections(_m)
+}
+
+// QueryCourseAssistantSections queries the "course_assistant_sections" edge of the User entity.
+func (_m *User) QueryCourseAssistantSections() *CourseSectionQuery {
+	return NewUserClient(_m.config).QueryCourseAssistantSections(_m)
 }
 
 // QueryEnrolledSections queries the "enrolled_sections" edge of the User entity.
@@ -199,6 +248,15 @@ func (_m *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("first_name=")
+	builder.WriteString(_m.FirstName)
+	builder.WriteString(", ")
+	builder.WriteString("middle_name=")
+	builder.WriteString(_m.MiddleName)
+	builder.WriteString(", ")
+	builder.WriteString("last_name=")
+	builder.WriteString(_m.LastName)
+	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(_m.Email)
 	builder.WriteString(", ")
@@ -209,6 +267,150 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("%v", _m.Role))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedPosts returns the Posts named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedPosts(name string) ([]*Post, error) {
+	if _m.Edges.namedPosts == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedPosts[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedPosts(name string, edges ...*Post) {
+	if _m.Edges.namedPosts == nil {
+		_m.Edges.namedPosts = make(map[string][]*Post)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedPosts[name] = []*Post{}
+	} else {
+		_m.Edges.namedPosts[name] = append(_m.Edges.namedPosts[name], edges...)
+	}
+}
+
+// NamedReplies returns the Replies named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedReplies(name string) ([]*Reply, error) {
+	if _m.Edges.namedReplies == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedReplies[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedReplies(name string, edges ...*Reply) {
+	if _m.Edges.namedReplies == nil {
+		_m.Edges.namedReplies = make(map[string][]*Reply)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedReplies[name] = []*Reply{}
+	} else {
+		_m.Edges.namedReplies[name] = append(_m.Edges.namedReplies[name], edges...)
+	}
+}
+
+// NamedTeachingSections returns the TeachingSections named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedTeachingSections(name string) ([]*CourseSection, error) {
+	if _m.Edges.namedTeachingSections == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedTeachingSections[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedTeachingSections(name string, edges ...*CourseSection) {
+	if _m.Edges.namedTeachingSections == nil {
+		_m.Edges.namedTeachingSections = make(map[string][]*CourseSection)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedTeachingSections[name] = []*CourseSection{}
+	} else {
+		_m.Edges.namedTeachingSections[name] = append(_m.Edges.namedTeachingSections[name], edges...)
+	}
+}
+
+// NamedTeachingAssistantSections returns the TeachingAssistantSections named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedTeachingAssistantSections(name string) ([]*CourseSection, error) {
+	if _m.Edges.namedTeachingAssistantSections == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedTeachingAssistantSections[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedTeachingAssistantSections(name string, edges ...*CourseSection) {
+	if _m.Edges.namedTeachingAssistantSections == nil {
+		_m.Edges.namedTeachingAssistantSections = make(map[string][]*CourseSection)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedTeachingAssistantSections[name] = []*CourseSection{}
+	} else {
+		_m.Edges.namedTeachingAssistantSections[name] = append(_m.Edges.namedTeachingAssistantSections[name], edges...)
+	}
+}
+
+// NamedCourseAssistantSections returns the CourseAssistantSections named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedCourseAssistantSections(name string) ([]*CourseSection, error) {
+	if _m.Edges.namedCourseAssistantSections == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedCourseAssistantSections[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedCourseAssistantSections(name string, edges ...*CourseSection) {
+	if _m.Edges.namedCourseAssistantSections == nil {
+		_m.Edges.namedCourseAssistantSections = make(map[string][]*CourseSection)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedCourseAssistantSections[name] = []*CourseSection{}
+	} else {
+		_m.Edges.namedCourseAssistantSections[name] = append(_m.Edges.namedCourseAssistantSections[name], edges...)
+	}
+}
+
+// NamedEnrolledSections returns the EnrolledSections named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *User) NamedEnrolledSections(name string) ([]*CourseSection, error) {
+	if _m.Edges.namedEnrolledSections == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedEnrolledSections[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *User) appendNamedEnrolledSections(name string, edges ...*CourseSection) {
+	if _m.Edges.namedEnrolledSections == nil {
+		_m.Edges.namedEnrolledSections = make(map[string][]*CourseSection)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedEnrolledSections[name] = []*CourseSection{}
+	} else {
+		_m.Edges.namedEnrolledSections[name] = append(_m.Edges.namedEnrolledSections[name], edges...)
+	}
 }
 
 // Users is a parsable slice of User.
